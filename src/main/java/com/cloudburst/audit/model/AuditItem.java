@@ -74,11 +74,11 @@ public abstract class AuditItem implements LogItem,ExceptionalItem, RequestRespo
 
     public static AuditItem withTrackingInfo(AuditItem item, Map<String,String> headers) {
         return from(item)
-                .principal(headers.get("principal"))
-                .requestId(headers.get("requestId"))
-                .tracingId(headers.get("tracingId"))
-                .sessionId(headers.get("sessionId"))
-                .correlationId(headers.get("correlationId"))
+                .principal(Optional.ofNullable(headers.get("principal")))
+                .requestId(Optional.ofNullable(headers.get("requestId")))
+                .tracingId(Optional.ofNullable(headers.get("tracingId")))
+                .sessionId(Optional.ofNullable(headers.get("sessionId")))
+                .correlationId(Optional.ofNullable(headers.get("correlationId")))
                 .build();
     }
 
@@ -89,6 +89,5 @@ public abstract class AuditItem implements LogItem,ExceptionalItem, RequestRespo
             return "error getting host";
         }
     }
-
 
 }

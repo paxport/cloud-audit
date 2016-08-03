@@ -7,9 +7,9 @@ public interface TrackingDetails {
 
     Optional<String> getPrincipal();
 
-    Optional<String> getSessionId();
     Optional<String> getRequestId();
     Optional<String> getTracingId();
+    Optional<String> getSessionId();
     Optional<String> getCorrelationId();
 
 }

@@ -1,6 +1,7 @@
 package com.cloudburst.audit.servlet.wrappers;
 
 import javax.servlet.ServletOutputStream;
+import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 import java.io.ByteArrayOutputStream;
@@ -30,14 +31,6 @@ public class AuditHttpServletResponseWrapper extends HttpServletResponseWrapper 
     public PrintWriter getWriter() throws IOException {
         return new PrintWriter(auditServletOutpuStream.baos);
     }
-
-//    public Map<String, String> getHeaders() {
-//        Map<String, String> headers = new HashMap<>(0);
-//        for (String headerName : getHeaderNames()) {
-//            headers.put(headerName, getHeader(headerName));
-//        }
-//        return headers;
-//    }
 
     public String getContent() {
         try {
@@ -70,5 +63,6 @@ public class AuditHttpServletResponseWrapper extends HttpServletResponseWrapper 
         public void write(byte[] b, int off, int len) throws IOException {
             baos.write(b, off, len);
         }
+
     }
 }

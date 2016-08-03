@@ -20,6 +20,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -106,7 +107,8 @@ public class AuditHttpServletRequestWrapper extends HttpServletRequestWrapper {
                 content = getContentFromParameterMap(this.parameterMap);
             }
             String requestEncoding = delegate.getCharacterEncoding();
-            String normalizedContent = StringUtils.normalizeSpace(new String(content, requestEncoding != null ? requestEncoding : StandardCharsets.UTF_8.name()));
+            requestEncoding = requestEncoding != null ? requestEncoding : StandardCharsets.UTF_8.name();
+            String normalizedContent = new String (content,requestEncoding);
             return StringUtils.isBlank(normalizedContent) ? "[EMPTY]" : normalizedContent;
         } catch (IOException e) {
             e.printStackTrace();

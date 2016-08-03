@@ -12,7 +12,7 @@ public abstract class Tracking implements TrackingDetails {
     private final static ThreadLocal<TrackingDetails> BOUND_ITEMS = new ThreadLocal<>();
 
     public static TrackingDetails of (String principal, String requestId, String tracingId, String sessionId) {
-        return ImmutableTrackingItem.builder()
+        return ImmutableTracking.builder()
                 .principal(Optional.ofNullable(principal))
                 .tracingId(Optional.ofNullable(tracingId))
                 .requestId(Optional.ofNullable(requestId))
@@ -22,7 +22,7 @@ public abstract class Tracking implements TrackingDetails {
 
     public static TrackingDetails of (String principal, String requestId, String tracingId,
                                       String sessionId, String correlationId) {
-        return ImmutableTrackingItem.builder()
+        return ImmutableTracking.builder()
                 .principal(Optional.ofNullable(principal))
                 .tracingId(Optional.ofNullable(tracingId))
                 .requestId(Optional.ofNullable(requestId))

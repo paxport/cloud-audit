@@ -35,7 +35,7 @@ public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> {
 
     protected AuditItem createAuditItemFromRequest(AuditHttpServletRequestWrapper requestWrapper) {
         AuditItem item = AuditItem.requestResponse(Level.INFO.name(),
-                    this.getClass().getSimpleName(),
+                    requestWrapper.getMethod() + " " + requestWrapper.getRequestURI(),
                     "Request Headers --> " + requestWrapper.getHeaders().toString(),
                     requestWrapper.getContent(),
                     null,
