@@ -1,55 +1,27 @@
 package com.cloudburst.audit.model;
 
-import org.immutables.serial.Serial;
-import org.immutables.value.Value;
+import java.util.Hashtable;
+import java.util.Map;
 
-import java.util.Optional;
+public abstract class Tracking {
 
-@Value.Immutable
-@Serial.Structural
-public abstract class Tracking implements TrackingDetails {
+    private final static ThreadLocal<Map<String,String>> BOUND_MAPS = new ThreadLocal<>();
 
-    private final static ThreadLocal<TrackingDetails> BOUND_ITEMS = new ThreadLocal<>();
-
-    public static TrackingDetails of (String principal, String requestId, String tracingId, String sessionId) {
-        return ImmutableTracking.builder()
-                .principal(Optional.ofNullable(principal))
-                .tracingId(Optional.ofNullable(tracingId))
-                .requestId(Optional.ofNullable(requestId))
-                .sessionId(Optional.ofNullable(sessionId))
-                .build();
+    public static void bindTrackingMap(Map<String,String> trackingMap){
+        BOUND_MAPS.set(trackingMap);
     }
 
-    public static TrackingDetails of (String principal, String requestId, String tracingId,
-                                      String sessionId, String correlationId) {
-        return ImmutableTracking.builder()
-                .principal(Optional.ofNullable(principal))
-                .tracingId(Optional.ofNullable(tracingId))
-                .requestId(Optional.ofNullable(requestId))
-                .sessionId(Optional.ofNullable(sessionId))
-                .correlationId(Optional.ofNullable(correlationId))
-                .build();
-    }
-
-    public static void bind(TrackingDetails item){
-        BOUND_ITEMS.set(item);
-    }
-
-    public static void bind(String principal, String requestId, String tracingId, String sessionId){
-        bind(of(principal,tracingId,requestId,sessionId));
-    }
-
-    public static TrackingDetails get() {
-        TrackingDetails item = BOUND_ITEMS.get();
-        if ( item == null ) {
-            return of(null,null,null,null);
+    public static Map<String,String> getTrackingMap() {
+        Map<String,String> map = BOUND_MAPS.get();
+        if ( map == null ) {
+            return new Hashtable<>();
         }
         else{
-            return item;
+            return map;
         }
     }
 
-    public static void unbind(){
-        BOUND_ITEMS.remove();
+    public static void unbindTrackingMap(){
+        BOUND_MAPS.remove();
     }
 }

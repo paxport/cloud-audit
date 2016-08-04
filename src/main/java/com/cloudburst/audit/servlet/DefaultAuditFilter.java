@@ -8,8 +8,14 @@ import com.cloudburst.audit.servlet.wrappers.AuditHttpServletResponseWrapper;
 
 import org.slf4j.event.Level;
 
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.BinaryOperator;
+import java.util.stream.Collectors;
 
 /**
  * Relies on Spring to configure
@@ -25,56 +31,63 @@ public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> {
         this.auditor = auditor;
     }
 
-    @Override
-    protected AuditItem beforeFilterChain(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper) {
-        AuditItem item = createAuditItemFromRequest(requestWrapper);
-        // this will bind the tracking info from the request headers into a thread local
-        Tracking.bind(item);
-        return item;
+    private Set<String> trackingHeaderNames = trackingHeaderNames();
+
+    protected Set<String> trackingHeaderNames(){
+        Set<String> headerNames = new HashSet<>();
+        headerNames.add("tracingId");
+        headerNames.add("logicalSessionId");
+        return headerNames;
     }
 
-    protected AuditItem createAuditItemFromRequest(AuditHttpServletRequestWrapper requestWrapper) {
-        AuditItem item = AuditItem.requestResponse(Level.INFO.name(),
-                    requestWrapper.getMethod() + " " + requestWrapper.getRequestURI(),
-                    "Request Headers --> " + requestWrapper.getHeaders().toString(),
-                    requestWrapper.getContent(),
-                    null,
-                    System.currentTimeMillis()
-                );
-        Map<String,String> trackingHeaders = mapTrackingHeaders(requestWrapper);
-        ensureRequestId(trackingHeaders);
-        return AuditItem.withTrackingInfo(item,trackingHeaders);
+    protected Map<String,String> createTrackingMap (AuditHttpServletRequestWrapper requestWrapper) {
+        return requestWrapper.getHeaders().entrySet().stream()
+                .filter(e -> trackingHeaderNames.contains(e.getKey()))
+                .collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue(),
+                        throwingMerger(), LinkedHashMap::new));
     }
 
-    /**
-     * Entry point so generate a requestId if none is found in the headers
-     */
-    protected void ensureRequestId(Map<String, String> trackingHeaders) {
-        if ( !trackingHeaders.containsKey("requestId") ) {
-            trackingHeaders.put("requestId", UUID.randomUUID().toString());
-        }
+    // copied from Collectors to allow us to create linked hash map
+    private static <T> BinaryOperator<T> throwingMerger() {
+        return (u,v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); };
     }
 
     /**
-     * Opportunity to convert real headers into those expected in AuditItem which are:
-     * principal,requestId,tracingId,sessionId and correlationId
-     * all are optional
+     * This gets run before the servlet chain is invoked and will create a tracking map from the
+     * incoming request headers (like tracingId or logicalSessionId etc) and then bind it to
+     * the thread so that
+     * @param requestWrapper
+     * @param responseWrapper
+     * @return
      */
-    protected Map<String,String> mapTrackingHeaders(AuditHttpServletRequestWrapper requestWrapper) {
-        return requestWrapper.getHeaders();
+    @Override
+    protected void beforeFilterChain(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper) {
+        Map<String,String> trackingMap = createTrackingMap(requestWrapper);
+        Tracking.bindTrackingMap(trackingMap);
     }
 
+    /**
+     * After the response is generated create an audit item and audit it then unbind the tracking info
+     * @param requestWrapper
+     * @param responseWrapper
+     * @param startTime - allows you to calculate time taken or set request time
+     */
     @Override
-    protected void afterFilterChain(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper, AuditItem requestItem) {
-        AuditItem item = createAuditItemForPair(requestItem,responseWrapper);
+    protected void afterFilterChain(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper, long startTime) {
+        AuditItem item = createAuditItemForPair(requestWrapper,responseWrapper,startTime);
         auditor.audit(item);
-        Tracking.unbind();
+        Tracking.unbindTrackingMap();
     }
 
-    protected AuditItem createAuditItemForPair(AuditItem requestItem, AuditHttpServletResponseWrapper responseWrapper) {
-        return AuditItem.from(requestItem)
-                .millisTaken(System.currentTimeMillis() - requestItem.getMillisTaken().get())
-                .response(responseWrapper.getContent())
-                .build();
+    protected AuditItem createAuditItemForPair(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper, long startTime) {
+        return AuditItem.requestResponse(
+                startTime,
+                Level.INFO.name(),
+                requestWrapper.getMethod() + " " + requestWrapper.getRequestURI(),
+                "Request Headers --> " + requestWrapper.getHeaders().toString(),
+                requestWrapper.getContent(),
+                responseWrapper.getContent(),
+                System.currentTimeMillis() - startTime
+        );
     }
 }

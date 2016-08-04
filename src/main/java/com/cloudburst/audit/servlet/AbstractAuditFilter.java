@@ -5,6 +5,7 @@ import com.cloudburst.audit.servlet.wrappers.AuditHttpServletResponseWrapper;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.servlet.Filter;
@@ -23,15 +24,11 @@ import javax.servlet.http.HttpServletResponse;
  */
 public abstract class AbstractAuditFilter<E> implements Filter {
 
-    private Set<String> excludedPaths = Collections.emptySet();
+    private Set<String> excludedPaths = excludedPaths();
 
-    public Set<String> getExcludedPaths() {
-        return excludedPaths;
-    }
-
-    public AbstractAuditFilter setExcludedPaths(Set<String> excludedPaths) {
-        this.excludedPaths = excludedPaths;
-        return this;
+    protected Set<String> excludedPaths(){
+        Set<String> paths = new HashSet<>();
+        return paths;
     }
 
     @Override
@@ -47,6 +44,7 @@ public abstract class AbstractAuditFilter<E> implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
+        // ignore requests for excluded paths
         for (String excludedPath : excludedPaths) {
             String requestURI = httpRequest.getRequestURI();
             if (requestURI.startsWith(excludedPath)) {
@@ -57,20 +55,31 @@ public abstract class AbstractAuditFilter<E> implements Filter {
 
         AuditHttpServletRequestWrapper requestWrapper = new AuditHttpServletRequestWrapper(httpRequest);
         AuditHttpServletResponseWrapper responseWrapper = new AuditHttpServletResponseWrapper(httpResponse);
-
-        E context = beforeFilterChain(requestWrapper,responseWrapper);
+        long startTime = System.currentTimeMillis();
+        beforeFilterChain(requestWrapper,responseWrapper);
         try{
             filterChain.doFilter(requestWrapper, responseWrapper);
         }
         finally {
-            afterFilterChain(requestWrapper,responseWrapper,context);
+            afterFilterChain(requestWrapper,responseWrapper,startTime);
         }
         httpResponse.getOutputStream().write(responseWrapper.getContentAsBytes());
     }
 
-    protected abstract E beforeFilterChain(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper);
+    /**
+     * Do stuff before the servlet chain executes like binding tracking info
+     * @param requestWrapper
+     * @param responseWrapper
+     */
+    protected abstract void beforeFilterChain(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper);
 
-    protected abstract void afterFilterChain(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper, E context);
+    /**
+     * Do stuff after the servlet chain like auditing the request and response
+     * @param requestWrapper
+     * @param responseWrapper
+     * @param startTime - allows you to calculate time taken or set request time
+     */
+    protected abstract void afterFilterChain(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper, long startTime);
 
 
     @Override

@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -124,7 +125,7 @@ public class AuditHttpServletRequestWrapper extends HttpServletRequestWrapper {
     }
 
     public Map<String, String> getHeaders() {
-        Map<String, String> headers = new HashMap<>(0);
+        Map<String, String> headers = new LinkedHashMap<>(0);
         Enumeration<String> headerNames = getHeaderNames();
         while (headerNames.hasMoreElements()) {
             String headerName = headerNames.nextElement();

@@ -4,8 +4,6 @@ import com.cloudburst.audit.Auditor;
 import com.cloudburst.audit.model.AuditItem;
 
 import org.apache.commons.collections4.IteratorUtils;
-import org.junit.After;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -14,33 +12,25 @@ import org.mockito.MockitoAnnotations;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.FilterChain;
-import javax.servlet.ReadListener;
 import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
 import javax.servlet.ServletOutputStream;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 public class DefaultAuditFilterTest {
@@ -58,8 +48,12 @@ public class DefaultAuditFilterTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        filter = new DefaultAuditFilter(mockAuditor);
-        filter.setExcludedPaths(Collections.singleton("/_ah"));
+        filter = new DefaultAuditFilter(mockAuditor){
+            @Override
+            protected Set<String> excludedPaths() {
+                return Collections.singleton("/_ah");
+            }
+        };
     }
 
     @Test
@@ -111,10 +105,14 @@ public class DefaultAuditFilterTest {
         when(mockHttpServletRequest.getMethod()).thenReturn("POST");
         when(mockHttpServletRequest.getRequestURI()).thenReturn("/foo");
 
-        Map<String,String> headers = new HashMap<>();
+        Map<String,String> headers = new LinkedHashMap<>();
+        headers.put("Content-Type","text/plain");
+        headers.put("logicalSessionId","12345");
 
-        Enumeration<String> headerNames = IteratorUtils.asEnumeration(headers.keySet().iterator());
-        when(mockHttpServletRequest.getHeaderNames()).thenReturn(headerNames);
+        when(mockHttpServletRequest.getHeaderNames())
+                .thenAnswer(i -> IteratorUtils.asEnumeration(headers.keySet().iterator()));
+        when(mockHttpServletRequest.getHeader(anyString()))
+                .thenAnswer(i -> headers.get(i.getArgument(0)));
 
         String requestBody = "Line One of Request.\r\nLine two of request.\r\n";
         when(mockHttpServletRequest.getInputStream()).thenReturn(new MockServletInputStream(requestBody));
@@ -139,7 +137,7 @@ public class DefaultAuditFilterTest {
         assertEquals("RRPAIR",item.getType());
         assertEquals("INFO",item.getLevel());
         assertEquals("POST /foo",item.getModule());
-        assertEquals("Request Headers --> {}",item.getMessage());
+        assertEquals("Request Headers --> {Content-Type=text/plain, logicalSessionId=12345}",item.getMessage());
         assertEquals("Line One of Request.\r\nLine two of request.\r\n",item.getRequest().get());
         assertEquals("Line one\r\nLine two\r\nLine three\r\n",item.getResponse().get());
     }
