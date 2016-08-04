@@ -83,7 +83,7 @@ public abstract class AuditItem implements LogItem,ExceptionalItem, RequestRespo
         return ImmutableAuditItem.builder()
                 .timestamp(ZonedDateTime.now())
                 .host(getHostName())
-                .trackingMap(trackingMap);
+                .tracking(trackingMap);
     }
 
     private static String getHostName() {

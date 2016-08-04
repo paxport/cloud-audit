@@ -5,13 +5,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+@Component
 public class BackgroundAuditor<E> implements Auditor<E>, InitializingBean, DisposableBean {
 
     private final static Logger logger = LoggerFactory.getLogger(BackgroundAuditor.class);
@@ -31,6 +34,7 @@ public class BackgroundAuditor<E> implements Auditor<E>, InitializingBean, Dispo
     private ExecutorService executor;
     private Auditor<E> delegate;
 
+    @Autowired
     public BackgroundAuditor(Auditor<E> delegate){
         this.delegate = delegate;
     }

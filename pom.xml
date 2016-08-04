@@ -6,7 +6,7 @@
 
     <groupId>com.cloudburst</groupId>
     <artifactId>cloud-audit</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <repositories>
@@ -63,7 +63,7 @@
         <dependency>
             <groupId>com.cloudburst</groupId>
             <artifactId>bigquery-tools</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
