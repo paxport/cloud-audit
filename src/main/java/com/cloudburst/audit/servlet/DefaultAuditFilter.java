@@ -6,6 +6,8 @@ import com.cloudburst.audit.model.Tracking;
 import com.cloudburst.audit.servlet.wrappers.AuditHttpServletRequestWrapper;
 import com.cloudburst.audit.servlet.wrappers.AuditHttpServletResponseWrapper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 
 import java.util.HashSet;
@@ -24,6 +26,8 @@ import java.util.stream.Collectors;
  *
  */
 public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> {
+
+    private final static Logger logger = LoggerFactory.getLogger(DefaultAuditFilter.class);
 
     private Auditor<AuditItem> auditor;
 
@@ -62,6 +66,11 @@ public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> {
      */
     @Override
     protected void beforeFilterChain(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper) {
+        if ( logger.isDebugEnabled() ){
+            logger.debug("new request being audited: " + requestWrapper.getRequestURI() + "?" + requestWrapper.getQueryString() );
+        }
+        // need to call this otherwise it won't get populated
+        requestWrapper.getContent();
         Map<String,String> trackingMap = createTrackingMap(requestWrapper);
         Tracking.bindTrackingMap(trackingMap);
     }
@@ -84,10 +93,23 @@ public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> {
                 startTime,
                 Level.INFO.name(),
                 requestWrapper.getMethod() + " " + requestWrapper.getRequestURI(),
-                "Request Headers --> " + requestWrapper.getHeaders().toString(),
+                message(requestWrapper),
                 requestWrapper.getContent(),
                 responseWrapper.getContent(),
                 System.currentTimeMillis() - startTime
         );
     }
+
+    /**
+     * Default to listing headers
+     * @param requestWrapper
+     * @return
+     */
+    protected String message(AuditHttpServletRequestWrapper requestWrapper){
+        return requestWrapper.getHeaders().entrySet()
+                .stream()
+                .map(entry -> entry.getKey() + ": " + entry.getValue())
+                .collect(Collectors.joining("\n"));
+    }
+
 }

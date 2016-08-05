@@ -92,7 +92,7 @@ public class DefaultAuditFilterTest {
         assertEquals("RRPAIR",item.getType());
         assertEquals("INFO",item.getLevel());
         assertEquals("GET /foo",item.getModule());
-        assertEquals("Request Headers --> {}",item.getMessage());
+        assertEquals("",item.getMessage());
         assertEquals("[EMPTY]",item.getRequest().get());
         assertEquals("Line one\r\nLine two\r\nLine three\r\n",item.getResponse().get());
     }
@@ -137,7 +137,7 @@ public class DefaultAuditFilterTest {
         assertEquals("RRPAIR",item.getType());
         assertEquals("INFO",item.getLevel());
         assertEquals("POST /foo",item.getModule());
-        assertEquals("Request Headers --> {Content-Type=text/plain, logicalSessionId=12345}",item.getMessage());
+        assertEquals("Content-Type: text/plain\nlogicalSessionId: 12345",item.getMessage());
         assertEquals("Line One of Request.\r\nLine two of request.\r\n",item.getRequest().get());
         assertEquals("Line one\r\nLine two\r\nLine three\r\n",item.getResponse().get());
     }

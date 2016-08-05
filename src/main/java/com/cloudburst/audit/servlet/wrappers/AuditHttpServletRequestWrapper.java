@@ -13,7 +13,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -21,7 +20,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -102,10 +100,12 @@ public class AuditHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
     public String getContent() {
         try {
-            if (this.parameterMap.isEmpty()) {
-                content = IOUtils.toByteArray(delegate.getInputStream());
-            } else {
-                content = getContentFromParameterMap(this.parameterMap);
+            if ( this.content == null ) {
+                if (this.parameterMap.isEmpty()) {
+                    content = IOUtils.toByteArray(delegate.getInputStream());
+                } else {
+                    content = getContentFromParameterMap(this.parameterMap);
+                }
             }
             String requestEncoding = delegate.getCharacterEncoding();
             requestEncoding = requestEncoding != null ? requestEncoding : StandardCharsets.UTF_8.name();
