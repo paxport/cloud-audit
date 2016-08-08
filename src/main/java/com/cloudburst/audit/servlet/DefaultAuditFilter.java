@@ -73,6 +73,9 @@ public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> {
         requestWrapper.getContent();
         Map<String,String> trackingMap = createTrackingMap(requestWrapper);
         Tracking.bindTrackingMap(trackingMap);
+
+        // return tracking details in response
+        trackingMap.entrySet().forEach(e -> responseWrapper.addHeader(e.getKey(),e.getValue()));
     }
 
     /**

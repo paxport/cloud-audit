@@ -12,12 +12,15 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Value.Immutable
 @Serial.Structural
 public abstract class AuditItem implements LogItem,ExceptionalItem, RequestResponsePair, TrackingMap {
 
     public abstract String getType();
+
+    public abstract String getGuid();
 
     public static AuditItem logItem(String level, String module, String message){
         return builder()
@@ -35,6 +38,16 @@ public abstract class AuditItem implements LogItem,ExceptionalItem, RequestRespo
                 .module(module)
                 .message(message)
                 .stacktrace(stacktrace(t))
+                .build();
+    }
+
+    public static AuditItem logException(String level, String module, String message, String stacktrace){
+        return builder()
+                .type("LOG")
+                .level(level)
+                .module(module)
+                .message(message)
+                .stacktrace(Optional.ofNullable(stacktrace))
                 .build();
     }
 
@@ -71,16 +84,20 @@ public abstract class AuditItem implements LogItem,ExceptionalItem, RequestRespo
         return ImmutableAuditItem.builder().from(item);
     }
 
-    public static String stacktrace(Throwable t) {
+    public static Optional<String> stacktrace(Throwable t) {
+        if ( t == null ) {
+            return Optional.empty();
+        }
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         t.printStackTrace(pw);
-        return sw.toString();
+        return Optional.of(sw.toString());
     }
 
     public static ImmutableAuditItem.Builder builder() {
         Map<String,String> trackingMap = Tracking.getTrackingMap();
         return ImmutableAuditItem.builder()
+                .guid(UUID.randomUUID().toString())
                 .timestamp(ZonedDateTime.now())
                 .host(getHostName())
                 .tracking(trackingMap);

@@ -7,6 +7,7 @@ import com.cloudburst.audit.model.AuditItem;
 import com.cloudburst.bigquery.BigQueryFactory;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -16,6 +17,7 @@ import java.util.Optional;
 /**
  * Created by ajchesney on 03/08/2016.
  */
+@Ignore
 public class AuditItemTableTest {
 
     private static BigQueryFactory factory = new BigQueryFactory();

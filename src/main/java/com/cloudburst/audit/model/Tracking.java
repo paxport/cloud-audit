@@ -5,6 +5,8 @@ import java.util.Map;
 
 public abstract class Tracking {
 
+    public final static String AUDIT_LEVEL = "audit-level";
+
     private final static ThreadLocal<Map<String,String>> BOUND_MAPS = new ThreadLocal<>();
 
     public static void bindTrackingMap(Map<String,String> trackingMap){
