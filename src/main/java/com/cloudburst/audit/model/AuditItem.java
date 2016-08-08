@@ -7,9 +7,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -54,9 +51,7 @@ public abstract class AuditItem implements LogItem,ExceptionalItem, RequestRespo
     public static AuditItem requestResponse(long requestTime, String level, String module, String message,
                                             String request, String response, Long millisTaken){
         return builder()
-                .timestamp(ZonedDateTime.ofInstant(
-                        Instant.ofEpochMilli(requestTime), ZoneId.systemDefault())
-                )
+                .timestamp(requestTime)
                 .type("RRPAIR")
                 .level(level)
                 .module(module)
@@ -98,7 +93,7 @@ public abstract class AuditItem implements LogItem,ExceptionalItem, RequestRespo
         Map<String,String> trackingMap = Tracking.getTrackingMap();
         return ImmutableAuditItem.builder()
                 .guid(UUID.randomUUID().toString())
-                .timestamp(ZonedDateTime.now())
+                .timestamp(System.currentTimeMillis())
                 .host(getHostName())
                 .tracking(trackingMap);
     }
