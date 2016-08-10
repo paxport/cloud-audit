@@ -9,6 +9,6 @@ public class AuditItemOverviewTrackingQuery extends AuditItemTrackingQuery {
 
     @Override
     protected String selectColumns() {
-        return "type,guid,seriesGuid,timestamp,level,module,label,url,hostname";
+        return "type,guid,timestamp,level,module,label,url,hostname,seriesGuid,millisTaken";
     }
 }

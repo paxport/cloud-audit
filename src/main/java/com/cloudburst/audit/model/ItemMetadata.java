@@ -23,4 +23,7 @@ public interface ItemMetadata {
 
     @Nullable
     String getSeriesGuid();
+
+    @Nullable
+    Long getMillisTaken();
 }

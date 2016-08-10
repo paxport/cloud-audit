@@ -114,7 +114,7 @@ public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> {
 
     protected AuditItem createAuditItemForResponse(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper, AuditItem requestItem) {
         return AuditItem.response(
-                requestItem.getGuid(),
+                requestItem,
                 requestWrapper.getRequestURL().toString(),
                 this.getClass().getSimpleName(),
                 requestWrapper.getMethod() + " " + requestWrapper.getRequestURI(),

@@ -7,6 +7,10 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.UUID;
 
@@ -16,8 +20,13 @@ public abstract class AuditItem implements ItemMetadata, ItemPayload, TrackingMa
 
     public final static String DEFAULT_LEVEL = "INFO";
 
+    public String timestampAsString() {
+        return ZonedDateTime.ofInstant(Instant.ofEpochMilli(getTimestamp())
+                ,ZoneId.of("UTC")).format(DateTimeFormatter.ISO_DATE_TIME);
+    }
+
     public static AuditItem log(String level, String module, String message){
-        return builder(false)
+        return builder()
                 .type(AuditItemType.LOG)
                 .level(level)
                 .module(module)
@@ -26,7 +35,7 @@ public abstract class AuditItem implements ItemMetadata, ItemPayload, TrackingMa
     }
 
     public static AuditItem exception(String level, String module, String message, Throwable t){
-        return builder(false)
+        return builder()
                 .type(AuditItemType.EXCEPTION)
                 .level(level)
                 .module(module)
@@ -36,7 +45,7 @@ public abstract class AuditItem implements ItemMetadata, ItemPayload, TrackingMa
     }
 
     public static AuditItem exception(String level, String module, String message, String stacktrace){
-        return builder(false)
+        return builder()
                 .type(AuditItemType.EXCEPTION)
                 .level(level)
                 .module(module)
@@ -46,7 +55,7 @@ public abstract class AuditItem implements ItemMetadata, ItemPayload, TrackingMa
     }
 
     public static AuditItem request(String url, String module, String label, String headers, String requestBody, String contentType){
-        return builder(true)
+        return builder()
                 .type(AuditItemType.REQUEST)
                 .level(DEFAULT_LEVEL)
                 .module(module)
@@ -58,8 +67,8 @@ public abstract class AuditItem implements ItemMetadata, ItemPayload, TrackingMa
                 .build();
     }
 
-    public static AuditItem response(String requestGuid, String url, String module, String label, String headers, String responseBody, String contentType){
-        return builder(false)
+    public static AuditItem response(AuditItem request, String url, String module, String label, String headers, String responseBody, String contentType){
+        return builder()
                 .type(AuditItemType.RESPONSE)
                 .level(DEFAULT_LEVEL)
                 .module(module)
@@ -68,7 +77,8 @@ public abstract class AuditItem implements ItemMetadata, ItemPayload, TrackingMa
                 .headers(headers)
                 .body(responseBody)
                 .contentType(contentType)
-                .seriesGuid(requestGuid)
+                .seriesGuid(request.getGuid()) // tie response to request
+                .millisTaken(System.currentTimeMillis() - request.getTimestamp())
                 .build();
     }
 
@@ -83,12 +93,12 @@ public abstract class AuditItem implements ItemMetadata, ItemPayload, TrackingMa
         return sw.toString();
     }
 
-    public static ImmutableAuditItem.Builder builder(boolean populateSeriesGuid) {
+    public static ImmutableAuditItem.Builder builder() {
         Map<String,String> trackingMap = Tracking.getTrackingMap();
         String guid = UUID.randomUUID().toString();
         return ImmutableAuditItem.builder()
                 .guid(guid)
-                .seriesGuid(populateSeriesGuid?guid:null)
+                .seriesGuid(guid)
                 .timestamp(System.currentTimeMillis())
                 .hostname(getHostName())
                 .tracking(trackingMap);

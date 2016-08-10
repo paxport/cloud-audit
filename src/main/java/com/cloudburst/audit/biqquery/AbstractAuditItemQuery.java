@@ -37,8 +37,10 @@ public abstract class AbstractAuditItemQuery implements Query<List<AuditItem>> {
         List<AuditItem> result = new ArrayList<>();
         List<TableFieldSchema> fields = response.getSchema().getFields();
         List<TableRow> rows = response.getRows();
-        for (TableRow row : rows) {
-            result.add(buildItem(row,fields));
+        if ( rows != null ) {
+            for (TableRow row : rows) {
+                result.add(buildItem(row,fields));
+            }
         }
         return result;
     }
@@ -68,6 +70,10 @@ public abstract class AbstractAuditItemQuery implements Query<List<AuditItem>> {
         switch (field.getName()) {
             case "timestamp":
                 builder.timestamp(CellUtils.toLongTimestamp(value).longValue());
+                break;
+
+            case "millisTaken":
+                builder.millisTaken(CellUtils.toLong(value));
                 break;
 
             case "type":
