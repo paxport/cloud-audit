@@ -11,8 +11,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.time.ZonedDateTime;
-import java.util.Optional;
 
 /**
  * Created by ajchesney on 03/08/2016.
@@ -33,7 +31,7 @@ public class AuditItemTableTest {
     @Test
     public void testStreaming () throws IOException {
 
-        AuditItem item = AuditItem.requestResponse("DEBUG","module","message","req","res", 1234l);
+        AuditItem item = AuditItem.request("URL","module","label","headers","body", "contentType");
 
         TableDataInsertAllResponse res = exampleTable.insertItem(item);
 

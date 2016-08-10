@@ -8,70 +8,67 @@ import java.io.StringWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 @Value.Immutable
 @Serial.Structural
-public abstract class AuditItem implements LogItem,ExceptionalItem, RequestResponsePair, TrackingMap {
+public abstract class AuditItem implements ItemMetadata, ItemPayload, TrackingMap {
 
-    public abstract String getType();
+    public final static String DEFAULT_LEVEL = "INFO";
 
-    public abstract String getGuid();
-
-    public static AuditItem logItem(String level, String module, String message){
-        return builder()
-                .type("LOG")
+    public static AuditItem log(String level, String module, String message){
+        return builder(false)
+                .type(AuditItemType.LOG)
                 .level(level)
                 .module(module)
-                .message(message)
+                .label(message)
                 .build();
     }
 
-    public static AuditItem logException(String level, String module, String message, Throwable t){
-        return builder()
-                .type("LOG")
+    public static AuditItem exception(String level, String module, String message, Throwable t){
+        return builder(false)
+                .type(AuditItemType.EXCEPTION)
                 .level(level)
                 .module(module)
-                .message(message)
-                .stacktrace(stacktrace(t))
+                .label(message)
+                .body(stacktrace(t))
                 .build();
     }
 
-    public static AuditItem logException(String level, String module, String message, String stacktrace){
-        return builder()
-                .type("LOG")
+    public static AuditItem exception(String level, String module, String message, String stacktrace){
+        return builder(false)
+                .type(AuditItemType.EXCEPTION)
                 .level(level)
                 .module(module)
-                .message(message)
-                .stacktrace(Optional.ofNullable(stacktrace))
+                .label(message)
+                .body(stacktrace)
                 .build();
     }
 
-    public static AuditItem requestResponse(long requestTime, String level, String module, String message,
-                                            String request, String response, Long millisTaken){
-        return builder()
-                .timestamp(requestTime)
-                .type("RRPAIR")
-                .level(level)
+    public static AuditItem request(String url, String module, String label, String headers, String requestBody, String contentType){
+        return builder(true)
+                .type(AuditItemType.REQUEST)
+                .level(DEFAULT_LEVEL)
                 .module(module)
-                .message(message)
-                .request(request)
-                .response(Optional.ofNullable(response))
-                .millisTaken(Optional.ofNullable(millisTaken))
+                .label(label)
+                .url(url)
+                .headers(headers)
+                .body(requestBody)
+                .contentType(contentType)
                 .build();
     }
 
-    public static AuditItem requestResponse(String level, String module, String message,
-                                            String request, String response, Long millisTaken){
-        return builder()
-                .type("RRPAIR")
-                .level(level)
+    public static AuditItem response(String requestGuid, String url, String module, String label, String headers, String responseBody, String contentType){
+        return builder(false)
+                .type(AuditItemType.RESPONSE)
+                .level(DEFAULT_LEVEL)
                 .module(module)
-                .message(message)
-                .request(request)
-                .response(Optional.ofNullable(response))
-                .millisTaken(Optional.ofNullable(millisTaken))
+                .label(label)
+                .url(url)
+                .headers(headers)
+                .body(responseBody)
+                .contentType(contentType)
+                .seriesGuid(requestGuid)
                 .build();
     }
 
@@ -79,22 +76,21 @@ public abstract class AuditItem implements LogItem,ExceptionalItem, RequestRespo
         return ImmutableAuditItem.builder().from(item);
     }
 
-    public static Optional<String> stacktrace(Throwable t) {
-        if ( t == null ) {
-            return Optional.empty();
-        }
+    public static String stacktrace(Throwable t) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         t.printStackTrace(pw);
-        return Optional.of(sw.toString());
+        return sw.toString();
     }
 
-    public static ImmutableAuditItem.Builder builder() {
+    public static ImmutableAuditItem.Builder builder(boolean populateSeriesGuid) {
         Map<String,String> trackingMap = Tracking.getTrackingMap();
+        String guid = UUID.randomUUID().toString();
         return ImmutableAuditItem.builder()
-                .guid(UUID.randomUUID().toString())
+                .guid(guid)
+                .seriesGuid(populateSeriesGuid?guid:null)
                 .timestamp(System.currentTimeMillis())
-                .host(getHostName())
+                .hostname(getHostName())
                 .tracking(trackingMap);
     }
 

@@ -40,7 +40,7 @@ public class AuditAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 
     private AuditItem createItem(ILoggingEvent event) {
 
-        return AuditItem.logException(
+        return AuditItem.exception(
                 event.getLevel().levelStr,
                 event.getLoggerName(),
                 event.getFormattedMessage(),

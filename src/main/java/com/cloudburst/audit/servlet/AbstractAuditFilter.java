@@ -1,10 +1,10 @@
 package com.cloudburst.audit.servlet;
 
+import com.cloudburst.audit.model.AuditItem;
 import com.cloudburst.audit.servlet.wrappers.AuditHttpServletRequestWrapper;
 import com.cloudburst.audit.servlet.wrappers.AuditHttpServletResponseWrapper;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -55,23 +55,28 @@ public abstract class AbstractAuditFilter<E> implements Filter {
 
         AuditHttpServletRequestWrapper requestWrapper = new AuditHttpServletRequestWrapper(httpRequest);
         AuditHttpServletResponseWrapper responseWrapper = new AuditHttpServletResponseWrapper(httpResponse);
-        long startTime = System.currentTimeMillis();
-        beforeFilterChain(requestWrapper,responseWrapper);
+        AuditItem requestItem = beforeFilterChain(requestWrapper,responseWrapper);
         try{
             filterChain.doFilter(requestWrapper, responseWrapper);
         }
         finally {
-            afterFilterChain(requestWrapper,responseWrapper,startTime);
+            afterFilterChain(requestWrapper,responseWrapper,requestItem);
         }
-        httpResponse.getOutputStream().write(responseWrapper.getContentAsBytes());
+        try{
+            httpResponse.getOutputStream().write(responseWrapper.getContentAsBytes());
+        }
+        catch (IllegalStateException e) {
+            httpResponse.getWriter().write(responseWrapper.getContent());
+        }
     }
 
     /**
      * Do stuff before the servlet chain executes like binding tracking info
      * @param requestWrapper
      * @param responseWrapper
+     * @return AuditItem for request object which will get passed into the afterFilterChain method
      */
-    protected abstract void beforeFilterChain(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper);
+    protected abstract AuditItem beforeFilterChain(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper);
 
     /**
      * Do stuff after the servlet chain like auditing the request and response
@@ -79,7 +84,7 @@ public abstract class AbstractAuditFilter<E> implements Filter {
      * @param responseWrapper
      * @param startTime - allows you to calculate time taken or set request time
      */
-    protected abstract void afterFilterChain(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper, long startTime);
+    protected abstract void afterFilterChain(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper, AuditItem requestItem);
 
 
     @Override

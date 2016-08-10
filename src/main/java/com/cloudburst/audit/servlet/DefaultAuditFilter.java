@@ -1,5 +1,7 @@
 package com.cloudburst.audit.servlet;
 
+import com.google.api.client.json.jackson2.JacksonFactory;
+
 import com.cloudburst.audit.Auditor;
 import com.cloudburst.audit.model.AuditItem;
 import com.cloudburst.audit.model.Tracking;
@@ -8,14 +10,12 @@ import com.cloudburst.audit.servlet.wrappers.AuditHttpServletResponseWrapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.event.Level;
 
+import java.io.IOException;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
@@ -36,6 +36,8 @@ public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> {
     }
 
     private Set<String> trackingHeaderNames = trackingHeaderNames();
+
+    private JacksonFactory jsonFactory = new JacksonFactory();
 
     protected Set<String> trackingHeaderNames(){
         Set<String> headerNames = new HashSet<>();
@@ -65,7 +67,7 @@ public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> {
      * @return
      */
     @Override
-    protected void beforeFilterChain(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper) {
+    protected AuditItem beforeFilterChain(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper) {
         if ( logger.isDebugEnabled() ){
             logger.debug("new request being audited: " + requestWrapper.getRequestURI() + "?" + requestWrapper.getQueryString() );
         }
@@ -76,43 +78,62 @@ public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> {
 
         // return tracking details in response
         trackingMap.entrySet().forEach(e -> responseWrapper.addHeader(e.getKey(),e.getValue()));
+
+        AuditItem requestItem = createAuditItemForRequest(requestWrapper);
+        if ( requestItem != null ) {
+            auditor.audit(requestItem);
+        }
+        return requestItem;
+    }
+
+    protected AuditItem createAuditItemForRequest(AuditHttpServletRequestWrapper requestWrapper) {
+        return AuditItem.request(
+                requestWrapper.getRequestURL().toString(),
+                this.getClass().getSimpleName(),
+                requestWrapper.getMethod() + " " + requestWrapper.getRequestURI(),
+                headers(requestWrapper.getHeaders()),
+                requestWrapper.getContent(),
+                requestWrapper.getContentType()
+                );
     }
 
     /**
      * After the response is generated create an audit item and audit it then unbind the tracking info
      * @param requestWrapper
      * @param responseWrapper
-     * @param startTime - allows you to calculate time taken or set request time
+     * @param requestItem - use request guid to set seriesGuid on response item so they can be tied together
      */
     @Override
-    protected void afterFilterChain(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper, long startTime) {
-        AuditItem item = createAuditItemForPair(requestWrapper,responseWrapper,startTime);
-        auditor.audit(item);
+    protected void afterFilterChain(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper, AuditItem requestItem) {
+        AuditItem responseItem = createAuditItemForResponse(requestWrapper,responseWrapper,requestItem);
+        if ( responseItem != null ) {
+            auditor.audit(responseItem);
+        }
         Tracking.unbindTrackingMap();
     }
 
-    protected AuditItem createAuditItemForPair(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper, long startTime) {
-        return AuditItem.requestResponse(
-                startTime,
-                Level.INFO.name(),
+    protected AuditItem createAuditItemForResponse(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper, AuditItem requestItem) {
+        return AuditItem.response(
+                requestItem.getGuid(),
+                requestWrapper.getRequestURL().toString(),
+                this.getClass().getSimpleName(),
                 requestWrapper.getMethod() + " " + requestWrapper.getRequestURI(),
-                message(requestWrapper),
-                requestWrapper.getContent(),
+                null,
                 responseWrapper.getContent(),
-                System.currentTimeMillis() - startTime
-        );
+                responseWrapper.getContentType()
+                );
     }
 
     /**
-     * Default to listing headers
-     * @param requestWrapper
-     * @return
+     * Encode headers as JSON
      */
-    protected String message(AuditHttpServletRequestWrapper requestWrapper){
-        return requestWrapper.getHeaders().entrySet()
-                .stream()
-                .map(entry -> entry.getKey() + ": " + entry.getValue())
-                .collect(Collectors.joining("\n"));
+    protected String headers(Map<String,String> headers){
+        try {
+            return jsonFactory.toString(headers);
+        } catch (IOException e) {
+            logger.error("headers", e);
+            return "error encoding headers: " + e.getMessage();
+        }
     }
 
 }

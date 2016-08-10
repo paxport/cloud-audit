@@ -2,6 +2,7 @@ package com.cloudburst.audit.servlet;
 
 import com.cloudburst.audit.Auditor;
 import com.cloudburst.audit.model.AuditItem;
+import com.cloudburst.audit.model.AuditItemType;
 
 import org.apache.commons.collections4.IteratorUtils;
 import org.junit.Before;
@@ -62,6 +63,7 @@ public class DefaultAuditFilterTest {
         // mock out request
 
         when(mockHttpServletRequest.getMethod()).thenReturn("GET");
+        when(mockHttpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost/foo"));
         when(mockHttpServletRequest.getRequestURI()).thenReturn("/foo");
 
         Map<String,String> headers = new HashMap<>();
@@ -79,22 +81,27 @@ public class DefaultAuditFilterTest {
             res.getOutputStream().println("Line one");
             res.getOutputStream().println("Line two");
             res.getOutputStream().println("Line three");
-            //res.getOutputStream().close();
         };
 
         filter.doFilter(mockHttpServletRequest, mockHttpServletResponse, filterChain);
 
         List<AuditItem> items = mockAuditor.getItems();
-        assertEquals(1,items.size());
+        assertEquals(2,items.size());
 
-        AuditItem item = mockAuditor.getItems().get(0);
+        AuditItem requestItem = mockAuditor.getItems().get(0);
 
-        assertEquals("RRPAIR",item.getType());
-        assertEquals("INFO",item.getLevel());
-        assertEquals("GET /foo",item.getModule());
-        assertEquals("",item.getMessage());
-        assertEquals("[EMPTY]",item.getRequest().get());
-        assertEquals("Line one\r\nLine two\r\nLine three\r\n",item.getResponse().get());
+        assertEquals(AuditItemType.REQUEST,requestItem.getType());
+        assertEquals("INFO",requestItem.getLevel());
+        assertEquals("http://localhost/foo",requestItem.getUrl());
+        assertEquals("GET /foo",requestItem.getLabel());
+        assertEquals("[EMPTY]",requestItem.getBody());
+
+        AuditItem responseItem = mockAuditor.getItems().get(1);
+        assertEquals(AuditItemType.RESPONSE,responseItem.getType());
+        assertEquals("INFO",responseItem.getLevel());
+        assertEquals("http://localhost/foo",responseItem.getUrl());
+        assertEquals("GET /foo",responseItem.getLabel());
+        assertEquals("Line one\r\nLine two\r\nLine three\r\n",responseItem.getBody());
     }
 
     @Test
@@ -103,6 +110,7 @@ public class DefaultAuditFilterTest {
         // mock out request
 
         when(mockHttpServletRequest.getMethod()).thenReturn("POST");
+        when(mockHttpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost/foo"));
         when(mockHttpServletRequest.getRequestURI()).thenReturn("/foo");
 
         Map<String,String> headers = new LinkedHashMap<>();
@@ -130,16 +138,22 @@ public class DefaultAuditFilterTest {
         filter.doFilter(mockHttpServletRequest, mockHttpServletResponse, filterChain);
 
         List<AuditItem> items = mockAuditor.getItems();
-        assertEquals(1,items.size());
+        assertEquals(2,items.size());
 
-        AuditItem item = mockAuditor.getItems().get(0);
+        AuditItem requestItem = mockAuditor.getItems().get(0);
 
-        assertEquals("RRPAIR",item.getType());
-        assertEquals("INFO",item.getLevel());
-        assertEquals("POST /foo",item.getModule());
-        assertEquals("Content-Type: text/plain\nlogicalSessionId: 12345",item.getMessage());
-        assertEquals("Line One of Request.\r\nLine two of request.\r\n",item.getRequest().get());
-        assertEquals("Line one\r\nLine two\r\nLine three\r\n",item.getResponse().get());
+        assertEquals(AuditItemType.REQUEST,requestItem.getType());
+        assertEquals("INFO",requestItem.getLevel());
+        assertEquals("http://localhost/foo",requestItem.getUrl());
+        assertEquals("POST /foo",requestItem.getLabel());
+        assertEquals("Line One of Request.\r\nLine two of request.\r\n",requestItem.getBody());
+
+        AuditItem responseItem = mockAuditor.getItems().get(1);
+        assertEquals(AuditItemType.RESPONSE,responseItem.getType());
+        assertEquals("INFO",responseItem.getLevel());
+        assertEquals("http://localhost/foo",responseItem.getUrl());
+        assertEquals("POST /foo",responseItem.getLabel());
+        assertEquals("Line one\r\nLine two\r\nLine three\r\n",responseItem.getBody());
     }
 
     @Test
