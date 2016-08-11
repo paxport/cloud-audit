@@ -12,7 +12,9 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,9 +30,10 @@ public abstract class AbstractAuditItemController {
     @Autowired
     protected BigQueryJobFactory jobFactory;
 
-    protected Set<String> queryableColumns = queryableTrackingColumns();
+    @Autowired
+    private AuditTableIdentifier auditTableIdentifier;
 
-    protected abstract TableIdentifier auditTableIdentifier();
+    protected Set<String> queryableColumns = queryableTrackingColumns();
 
     /**
      * This could be a security risk so need to restrict access to those columns that
@@ -53,7 +56,7 @@ public abstract class AbstractAuditItemController {
     }
 
     protected QueryJob<List<AuditItem>> startTrackingQueryJob(Map<String, String> filtered) {
-        TableIdentifier id = auditTableIdentifier();
+        TableIdentifier id = auditTableIdentifier;
         Query<List<AuditItem>> query = new AuditItemOverviewTrackingQuery(id.getDatasetId(),id.getTableId(),filtered);
         return jobFactory.startQuery(id.getProjectId(),query);
     }
@@ -61,8 +64,24 @@ public abstract class AbstractAuditItemController {
 
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, params = "seriesGuid")
     public List<AuditItem> findItemsBySeriesGuid(@RequestParam String seriesGuid) {
-        TableIdentifier id = auditTableIdentifier();
+        TableIdentifier id = auditTableIdentifier;
         Query<List<AuditItem>> query = new AuditItemSeriesQuery(id.getDatasetId(),id.getTableId(),seriesGuid);
         return jobFactory.startQuery(id.getProjectId(),query).waitForResult();
+    }
+
+    @RequestMapping("overview.html")
+    public ModelAndView overview(@RequestParam Map<String, String> queryParams) {
+        List<AuditItem> items = this.findItemsByTrackingProps(queryParams);
+        Map<String,Object> model = new HashMap<>();
+        model.put("items", items);
+        return new ModelAndView("overview", model);
+    }
+
+    @RequestMapping("details.html")
+    public ModelAndView detailsForSeriesGuid(@RequestParam String seriesGuid) {
+        List<AuditItem> items = this.findItemsBySeriesGuid(seriesGuid);
+        Map<String,Object> model = new HashMap<>();
+        model.put("items", items);
+        return new ModelAndView("details", model);
     }
 }
