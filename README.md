@@ -74,7 +74,7 @@ And then configure with something like:
 
 ### Logback Appender
 
-Add this to your logback.xml to WARN and ERROR to audit DB:
+Add this to your logback.xml to log WARN and ERROR messages to audit DB:
 
     <appender name="AUDIT" class="com.cloudburst.audit.logback.AuditAppender"/>
     
@@ -84,6 +84,28 @@ This means that you can potentially add request headers in order to elevate the 
 ### JAX-WS Handler
 
 Add new AuditSOAPHandler() to your SOAP handler chain in order to audit the SOAP requests and responses.
+
+### Basic Web Gui
+
+If you subclass AbstractAuditItemController with something like:
+
+    @RestController
+    @RequestMapping("/v1/audit/items")
+    public class AuditController extends AbstractAuditItemController {
+    
+        @Override
+        protected Set<String> queryableTrackingColumns() {
+            Set<String> result = new HashSet<>();
+            result.add("internal_tracing_id");
+            result.add("logical_session_id");
+            return result;
+        }
+    }
+    
+Then you will get a basic web gui so you can retrieve a trace by visiting:
+
+__/v1/audit/items/overview.html?internal_tracing_id=foo__
+
 
 ## To Release new version to Bintray
 
