@@ -7,6 +7,9 @@ First off logging into Google BigQuery.
 
 Uses Spring.
 
-Work in progress.
+## To Release new version to Bintray
+
+    mvn clean release:prepare -Darguments="-Dmaven.javadoc.skip=true"
+    mvn release:perform -Darguments="-Dmaven.javadoc.skip=true"
 
 

@@ -22,7 +22,7 @@ public abstract class AuditItem implements ItemMetadata, ItemPayload, TrackingMa
 
     public String timestampAsString() {
         return ZonedDateTime.ofInstant(Instant.ofEpochMilli(getTimestamp())
-                ,ZoneId.of("UTC")).format(DateTimeFormatter.ISO_DATE_TIME);
+                ,ZoneId.of("UTC")).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
 
     public static AuditItem log(String level, String module, String message){

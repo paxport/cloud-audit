@@ -158,8 +158,8 @@
     </distributionManagement>
 
     <scm>
-        <connection>https://github.com/CloudburstStrategy/CloudAudit.git</connection>
-        <developerConnection>git@github.com:CloudburstStrategy/CloudAudit.git</developerConnection>
+        <connection>scm:git:https://github.com/CloudburstStrategy/CloudAudit.git</connection>
+        <developerConnection>scm:git:git@github.com:CloudburstStrategy/CloudAudit.git</developerConnection>
         <url>https://github.com/CloudburstStrategy/CloudAudit</url>
         <tag>HEAD</tag>
     </scm>
