@@ -3,10 +3,9 @@ package com.cloudburst.audit.servlet;
 import com.google.api.services.bigquery.model.TableDataInsertAllResponse;
 
 import com.cloudburst.audit.biqquery.AuditItemTable;
+import com.cloudburst.audit.biqquery.AuditTableIdentifier;
 import com.cloudburst.audit.model.AuditItem;
 import com.cloudburst.bigquery.BigQueryFactory;
-import com.cloudburst.bigquery.SimpleTableIdentifier;
-import com.cloudburst.bigquery.TableIdentifier;
 
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -21,7 +20,7 @@ import java.io.IOException;
 public class AuditItemTableTest {
 
     private static BigQueryFactory factory = new BigQueryFactory();
-    private static TableIdentifier identifier = new SimpleTableIdentifier("paxportcloud","audit","items");
+    private static AuditTableIdentifier identifier = new AuditTableIdentifier("paxportcloud","audit","items");
     private static AuditItemTable exampleTable = new AuditItemTable(identifier);
 
     @BeforeClass

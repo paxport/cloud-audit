@@ -17,6 +17,16 @@ public class AuditTableIdentifier implements TableIdentifier {
     @Value("${audit.bigquery.tableId}")
     private String tableId;
 
+
+    public AuditTableIdentifier(){
+    }
+
+    public AuditTableIdentifier(String project,String dataset,String table){
+        this.projectId = project;
+        this.datasetId = dataset;
+        this.tableId = table;
+    }
+
     @Override
     public String getProjectId() {
         return projectId;
