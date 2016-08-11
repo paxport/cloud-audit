@@ -3,9 +3,11 @@
 <head>
     <title>Audit Items Details</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script src="vkbeautify.js"></script>
+    <script src="pretty-elements.js"></script>
     <style>
         th, td {
-            padding: 15px;
+            padding: 5px;
             text-align: left;
         }
 
@@ -15,7 +17,7 @@
         }
 
         table, th, td {
-            border: 2px solid purple;
+            border: 1px solid purple;
         }
 
         th {
@@ -26,45 +28,40 @@
 
     </style>
 </head>
-<body>
+<body >
 <div th:if="${not #lists.isEmpty(items)}">
 
     <div th:each="item : ${items}">
-
-
     <table>
         <thead>
         <tr>
             <th>TIMESTAMP</th>
             <th>TYPE</th>
+            <th>MS</th>
             <th>URL</th>
-            <th>MODULE</th>
             <th>LABEL</th>
             <th>HOST</th>
-            <th>LEVEL</th>
-            <th>MILLIS</th>
-            <th>CONTENT-TYPE</th>
+            <th>MODULE</th>
         </tr>
         </thead>
         <tbody>
         <tr>
             <td th:text="${item.timestampAsString()}"></td>
             <td th:text="${item.type}"></td>
+            <td th:text="${item.millisTaken}"></td>
             <td th:text="${item.url}"></td>
-            <td th:text="${item.module}"></td>
             <td th:text="${item.label}"></td>
             <td th:text="${item.hostname}"></td>
-            <td th:text="${item.level}"></td>
-            <td th:text="${item.millisTaken}"></td>
-            <td th:text="${item.contentType}"></td>
+            <td th:text="${item.module}"></td>
         </tr>
         <tr th:if="${item.headers}">
             <td colspan="1">Headers:</td>
-            <td colspan="8" th:text="${item.headers}" class="formatted"></td>
+            <td colspan="8" th:text="${item.headers}"></td>
         </tr>
         <tr th:if="${item.body}">
-            <td colspan="1">Body:</td>
-            <td colspan="8" th:text="${item.body}" class="formatted"></td>
+            <td colspan="9">
+                <pre th:text="${item.body}" class="pretty"></pre>
+            </td>
         </tr>
         </tbody>
     </table>

@@ -14,11 +14,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletResponse;
 
 //@RestController
 //@RequestMapping("/v1/audit/items")
@@ -74,7 +80,7 @@ public abstract class AbstractAuditItemController {
         List<AuditItem> items = this.findItemsByTrackingProps(queryParams);
         Map<String,Object> model = new HashMap<>();
         model.put("items", items);
-        return new ModelAndView("overview", model);
+        return new ModelAndView("auditoverview", model);
     }
 
     @RequestMapping("details.html")
@@ -82,6 +88,24 @@ public abstract class AbstractAuditItemController {
         List<AuditItem> items = this.findItemsBySeriesGuid(seriesGuid);
         Map<String,Object> model = new HashMap<>();
         model.put("items", items);
-        return new ModelAndView("details", model);
+        return new ModelAndView("auditdetails", model);
+    }
+
+    public String script(String scriptname,final HttpServletResponse response) throws IOException {
+        InputStream in = this.getClass().getResourceAsStream("/scripts/" + scriptname + ".js");
+        try (BufferedReader buffer = new BufferedReader(new InputStreamReader(in))) {
+            response.setContentType("text/javascript");
+            return buffer.lines().collect(Collectors.joining("\n"));
+        }
+    }
+
+    @RequestMapping(value = "pretty-elements.js")
+    public String prettyElements(final HttpServletResponse response) throws IOException {
+        return script("pretty-elements",response);
+    }
+
+    @RequestMapping(value = "vkbeautify.js")
+    public String vkbeautify(final HttpServletResponse response) throws IOException {
+        return script("vkbeautify",response);
     }
 }

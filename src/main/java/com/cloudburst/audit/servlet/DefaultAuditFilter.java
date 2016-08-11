@@ -90,7 +90,7 @@ public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> {
         return AuditItem.request(
                 requestWrapper.getRequestURL().toString(),
                 this.getClass().getSimpleName(),
-                requestWrapper.getMethod() + " " + requestWrapper.getRequestURI(),
+                requestWrapper.getMethod(),
                 headers(requestWrapper.getHeaders()),
                 requestWrapper.getContent(),
                 requestWrapper.getContentType()
@@ -117,7 +117,7 @@ public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> {
                 requestItem,
                 requestWrapper.getRequestURL().toString(),
                 this.getClass().getSimpleName(),
-                requestWrapper.getMethod() + " " + requestWrapper.getRequestURI(),
+                requestWrapper.getMethod(),
                 null,
                 responseWrapper.getContent(),
                 responseWrapper.getContentType()

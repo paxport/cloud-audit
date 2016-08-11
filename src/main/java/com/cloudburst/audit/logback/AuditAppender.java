@@ -1,6 +1,6 @@
 package com.cloudburst.audit.logback;
 
-import com.cloudburst.audit.Auditor;
+import com.cloudburst.audit.AuditorSingleton;
 import com.cloudburst.audit.model.AuditItem;
 import com.cloudburst.audit.model.Tracking;
 
@@ -18,22 +18,16 @@ import ch.qos.logback.core.UnsynchronizedAppenderBase;
  */
 public class AuditAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 
-    private static Auditor<AuditItem> AUDITOR;
-
-    public static void setAuditorInstance(Auditor<AuditItem> auditor) {
-        AUDITOR = auditor;
-    }
-
     @Override
     protected void append(ILoggingEvent event) {
-        if ( AUDITOR == null ) {
+        if ( !AuditorSingleton.isPopulated() ) {
             return;
         }
         Level auditLevel = auditLevel();
         if (event.getLevel().isGreaterOrEqual(auditLevel)) {
             AuditItem item = createItem ( event );
             if ( item != null ) {
-                AUDITOR.audit(item);
+                AuditorSingleton.getInstance().audit(item);
             }
         }
     }

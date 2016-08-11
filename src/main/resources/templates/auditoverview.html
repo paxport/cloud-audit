@@ -5,10 +5,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <style>
         th, td {
-            padding: 15px;
+            padding: 5px;
             text-align: left;
         }
-
         table {
             border-collapse: collapse;
             width: 100%;
@@ -27,33 +26,37 @@
     </style>
 </head>
 <body>
-    <div th:if="${not #lists.isEmpty(items)}" class="datagrid">
+    <div th:if="${#lists.isEmpty(items)}">
+        <p>No Audit Items found :-(</p>
+    </div>
+    <div th:if="${not #lists.isEmpty(items)}">
         <table>
             <thead>
                 <tr>
                     <th>TIMESTAMP</th>
                     <th>TYPE</th>
+                    <th>MS</th>
                     <th>URL</th>
-                    <th>MODULE</th>
                     <th>LABEL</th>
                     <th>HOST</th>
-                    <th>LEVEL</th>
-                    <th>MILLIS</th>
-                    <th>DETAILS</th>
+                    <th>MODULE</th>
                 </tr>
             </thead>
             <tbody>
-            <tr th:each="item : ${items}">
+                <tr th:each="item : ${items}">
                         <td th:text="${item.timestampAsString()}"></td>
-                        <td th:text="${item.type}"></td>
+                        <td>
+                            <a target="_blank"
+                               th:text="${item.type}"
+                               th:href="@{/v1/audit/items/details.html(seriesGuid=${item.seriesGuid})}">
+                            </a>
+                        </td>
+                        <td th:text="${item.millisTaken}"></td>
                         <td th:text="${item.url}"></td>
-                        <td th:text="${item.module}"></td>
                         <td th:text="${item.label}"></td>
                         <td th:text="${item.hostname}"></td>
-                        <td th:text="${item.level}"></td>
-                        <td th:text="${item.millisTaken}"></td>
-                        <td><a target="_blank" th:href="@{/v1/audit/items/details.html(seriesGuid=${item.seriesGuid})}">DETAILS</a></td>
-            </tr>
+                        <td th:text="${item.module}"></td>
+                </tr>
             </tbody>
         </table>
     </div>

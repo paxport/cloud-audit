@@ -93,14 +93,14 @@ public class DefaultAuditFilterTest {
         assertEquals(AuditItemType.REQUEST,requestItem.getType());
         assertEquals("INFO",requestItem.getLevel());
         assertEquals("http://localhost/foo",requestItem.getUrl());
-        assertEquals("GET /foo",requestItem.getLabel());
+        assertEquals("GET",requestItem.getLabel());
         assertEquals("[EMPTY]",requestItem.getBody());
 
         AuditItem responseItem = mockAuditor.getItems().get(1);
         assertEquals(AuditItemType.RESPONSE,responseItem.getType());
         assertEquals("INFO",responseItem.getLevel());
         assertEquals("http://localhost/foo",responseItem.getUrl());
-        assertEquals("GET /foo",responseItem.getLabel());
+        assertEquals("GET",responseItem.getLabel());
         assertEquals("Line one\r\nLine two\r\nLine three\r\n",responseItem.getBody());
     }
 
@@ -145,14 +145,14 @@ public class DefaultAuditFilterTest {
         assertEquals(AuditItemType.REQUEST,requestItem.getType());
         assertEquals("INFO",requestItem.getLevel());
         assertEquals("http://localhost/foo",requestItem.getUrl());
-        assertEquals("POST /foo",requestItem.getLabel());
+        assertEquals("POST",requestItem.getLabel());
         assertEquals("Line One of Request.\r\nLine two of request.\r\n",requestItem.getBody());
 
         AuditItem responseItem = mockAuditor.getItems().get(1);
         assertEquals(AuditItemType.RESPONSE,responseItem.getType());
         assertEquals("INFO",responseItem.getLevel());
         assertEquals("http://localhost/foo",responseItem.getUrl());
-        assertEquals("POST /foo",responseItem.getLabel());
+        assertEquals("POST",responseItem.getLabel());
         assertEquals("Line one\r\nLine two\r\nLine three\r\n",responseItem.getBody());
     }
 
