@@ -3,6 +3,8 @@ package com.cloudburst.audit.servlet;
 import com.google.api.client.json.jackson2.JacksonFactory;
 
 import com.cloudburst.audit.Auditor;
+import com.cloudburst.audit.AuditorSingleton;
+import com.cloudburst.audit.BackgroundAuditor;
 import com.cloudburst.audit.model.AuditItem;
 import com.cloudburst.audit.model.Tracking;
 import com.cloudburst.audit.servlet.wrappers.AuditHttpServletRequestWrapper;
@@ -31,8 +33,14 @@ public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> {
 
     private Auditor<AuditItem> auditor;
 
-    public DefaultAuditFilter(Auditor<AuditItem> auditor) {
+    /**
+     * Prefer background auditor to avoid adding latency to req/res
+     * @param auditor
+     */
+    public DefaultAuditFilter(BackgroundAuditor<AuditItem> auditor) {
         this.auditor = auditor;
+        // set Logback Appender Auditor in case it is in use
+        AuditorSingleton.setInstance(auditor);
     }
 
     private Set<String> trackingHeaderNames = trackingHeaderNames();
