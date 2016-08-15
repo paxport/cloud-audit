@@ -4,7 +4,6 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 
 import com.cloudburst.audit.Auditor;
 import com.cloudburst.audit.AuditorSingleton;
-import com.cloudburst.audit.BackgroundAuditor;
 import com.cloudburst.audit.model.AuditItem;
 import com.cloudburst.audit.model.Tracking;
 import com.cloudburst.audit.servlet.wrappers.AuditHttpServletRequestWrapper;
@@ -18,6 +17,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
@@ -26,10 +26,16 @@ import java.util.stream.Collectors;
  *
  * http://stackoverflow.com/questions/32127258/how-to-autowire-bean-in-the-servlet-filters-in-spring-application
  *
+ * By default will look for tracing_id and logical_session_id headers and will bind them
+ * into the trackingMap along with a generated request_id.
+ *
  */
 public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> {
 
     private final static Logger logger = LoggerFactory.getLogger(DefaultAuditFilter.class);
+    public static final String TRACING_ID = "tracing_id";
+    public static final String LOGICAL_SESSION_ID = "logical_session_id";
+    public static final String REQUEST_ID = "request_id";
 
     private Auditor<AuditItem> auditor;
 
@@ -37,7 +43,7 @@ public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> {
      * Prefer background auditor to avoid adding latency to req/res
      * @param auditor
      */
-    public DefaultAuditFilter(BackgroundAuditor<AuditItem> auditor) {
+    public DefaultAuditFilter(Auditor<AuditItem> auditor) {
         this.auditor = auditor;
         // set Logback Appender Auditor in case it is in use
         AuditorSingleton.setInstance(auditor);
@@ -49,16 +55,24 @@ public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> {
 
     protected Set<String> trackingHeaderNames(){
         Set<String> headerNames = new HashSet<>();
-        headerNames.add("tracingId");
-        headerNames.add("logicalSessionId");
+        headerNames.add(TRACING_ID);
+        headerNames.add(LOGICAL_SESSION_ID);
         return headerNames;
     }
 
     protected Map<String,String> createTrackingMap (AuditHttpServletRequestWrapper requestWrapper) {
-        return requestWrapper.getHeaders().entrySet().stream()
+        Map<String,String> result = requestWrapper.getHeaders().entrySet().stream()
                 .filter(e -> trackingHeaderNames.contains(e.getKey()))
                 .collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue(),
                         throwingMerger(), LinkedHashMap::new));
+        // add in new request id for just this request
+        String guid = UUID.randomUUID().toString();
+        result.put(REQUEST_ID, guid);
+        // propogate tracing id
+        if ( !result.containsKey(TRACING_ID) ) {
+            result.put(TRACING_ID,guid);
+        }
+        return result;
     }
 
     // copied from Collectors to allow us to create linked hash map

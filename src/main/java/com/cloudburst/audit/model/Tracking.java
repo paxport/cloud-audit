@@ -26,4 +26,8 @@ public abstract class Tracking {
     public static void unbindTrackingMap(){
         BOUND_MAPS.remove();
     }
+
+    public static boolean isBound(){
+        return BOUND_MAPS.get() != null;
+    }
 }

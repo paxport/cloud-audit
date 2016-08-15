@@ -4,6 +4,9 @@ import com.cloudburst.audit.model.AuditItem;
 import com.cloudburst.audit.servlet.wrappers.AuditHttpServletRequestWrapper;
 import com.cloudburst.audit.servlet.wrappers.AuditHttpServletResponseWrapper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,6 +26,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  */
 public abstract class AbstractAuditFilter<E> implements Filter {
+
+    private final static Logger logger = LoggerFactory.getLogger(AbstractAuditFilter.class);
 
     private Set<String> excludedPaths = excludedPaths();
 
@@ -82,10 +87,9 @@ public abstract class AbstractAuditFilter<E> implements Filter {
      * Do stuff after the servlet chain like auditing the request and response
      * @param requestWrapper
      * @param responseWrapper
-     * @param startTime - allows you to calculate time taken or set request time
+     * @param requestItem - link to response
      */
     protected abstract void afterFilterChain(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper, AuditItem requestItem);
-
 
     @Override
     public void destroy() {

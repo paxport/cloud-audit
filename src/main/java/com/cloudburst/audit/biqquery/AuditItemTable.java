@@ -7,7 +7,6 @@ import com.cloudburst.audit.model.AuditItem;
 import com.cloudburst.bigquery.FieldMode;
 import com.cloudburst.bigquery.FieldType;
 import com.cloudburst.bigquery.ReflectionBigQueryTable;
-import com.cloudburst.bigquery.TableIdentifier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +17,13 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Map;
+
+import static com.cloudburst.audit.servlet.DefaultAuditFilter.LOGICAL_SESSION_ID;
+import static com.cloudburst.audit.servlet.DefaultAuditFilter.REQUEST_ID;
+import static com.cloudburst.audit.servlet.DefaultAuditFilter.TRACING_ID;
 
 public class AuditItemTable extends ReflectionBigQueryTable<AuditItem> implements Auditor<AuditItem> {
 
@@ -35,6 +40,22 @@ public class AuditItemTable extends ReflectionBigQueryTable<AuditItem> implement
         } catch (IOException e) {
             logger.error("Audit failed for: " + item.getModule(), e);
         }
+    }
+
+    /**
+     * By default add in the 3 tracking headers as columns
+     * @return
+     */
+    @Override
+    protected Map<String, TableFieldSchema> customFields() {
+        Map<String,TableFieldSchema> fields = new LinkedHashMap<>();
+        TableFieldSchema tracking = field("tracking", FieldType.RECORD, FieldMode.NULLABLE);
+        tracking.setFields(new ArrayList<>());
+        tracking.getFields().add(field(TRACING_ID,FieldType.STRING,FieldMode.NULLABLE));
+        tracking.getFields().add(field(LOGICAL_SESSION_ID,FieldType.STRING,FieldMode.NULLABLE));
+        tracking.getFields().add(field(REQUEST_ID,FieldType.STRING,FieldMode.NULLABLE));
+        fields.put("tracking",tracking);
+        return fields;
     }
 
     @Override

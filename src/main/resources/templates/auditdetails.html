@@ -35,13 +35,13 @@
     <table>
         <thead>
         <tr>
-            <th>TIMESTAMP</th>
-            <th>TYPE</th>
+            <th>Timestamp</th>
+            <th>Type</th>
             <th>MS</th>
             <th>URL</th>
-            <th>LABEL</th>
-            <th>HOST</th>
-            <th>MODULE</th>
+            <th>Label</th>
+            <th>Host</th>
+            <th>Request ID</th>
         </tr>
         </thead>
         <tbody>
@@ -52,7 +52,12 @@
             <td th:text="${item.url}"></td>
             <td th:text="${item.label}"></td>
             <td th:text="${item.hostname}"></td>
-            <td th:text="${item.module}"></td>
+            <td>
+                <a target="_blank"
+                   th:text="${item.tracking['request_id']}"
+                   th:href="@{/v1/audit/items/overview.html(request_id=${item.tracking['request_id']})}">
+                </a>
+            </td>
         </tr>
         <tr th:if="${item.headers}">
             <td colspan="1">Headers:</td>

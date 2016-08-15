@@ -32,34 +32,53 @@
     <div th:if="${not #lists.isEmpty(items)}">
         <table>
             <thead>
+            <tr>
+                <th>Internal Tracing Id</th>
+                <th>Logical Session Id</th>
+                <th>Total Envelope Millis</th>
+                <th>Total Req/Res Pairs</th>
+                <th>Total Content Millis</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td th:text="${overview['internal_tracing_id']}"></td>
+                <td th:text="${overview['logical_session_id']}"></td>
+                <td th:text="${overview['envelopeMillis']}"></td>
+                <td th:text="${overview['responseCount']}"></td>
+                <td th:text="${overview['contentMillis']}"></td>
+            </tr>
+            </tbody>
+        </table>
+        <table>
+            <thead>
                 <tr>
-                    <th>TIMESTAMP</th>
-                    <th>TYPE</th>
+                    <th>Timestamp</th>
+                    <th>Type</th>
                     <th>MS</th>
                     <th>URL</th>
-                    <th>LABEL</th>
-                    <th>HOST</th>
-                    <th>MODULE</th>
+                    <th>Label</th>
+                    <th>Host</th>
+                    <th>Module</th>
                 </tr>
             </thead>
             <tbody>
                 <tr th:each="item : ${items}">
-                        <td th:text="${item.timestampAsString()}"></td>
-                        <td>
-                            <a target="_blank"
-                               th:text="${item.type}"
-                               th:href="@{/v1/audit/items/details.html(seriesGuid=${item.seriesGuid})}">
-                            </a>
-                        </td>
-                        <td th:text="${item.millisTaken}"></td>
-                        <td th:text="${item.url}"></td>
-                        <td th:text="${item.label}"></td>
-                        <td th:text="${item.hostname}"></td>
-                        <td th:text="${item.module}"></td>
+                    <td th:text="${item.timestampAsString()}"></td>
+                    <td>
+                        <a target="_blank"
+                           th:text="${item.type}"
+                           th:href="@{/v1/audit/items/details.html(seriesGuid=${item.seriesGuid})}">
+                        </a>
+                    </td>
+                    <td th:text="${item.millisTaken}"></td>
+                    <td th:text="${item.url}"></td>
+                    <td th:text="${item.label}"></td>
+                    <td th:text="${item.hostname}"></td>
+                    <td th:text="${item.module}"></td>
                 </tr>
             </tbody>
         </table>
     </div>
-
 </body>
 </html>

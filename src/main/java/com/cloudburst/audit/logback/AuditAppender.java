@@ -20,27 +20,33 @@ public class AuditAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 
     @Override
     protected void append(ILoggingEvent event) {
-        if ( !AuditorSingleton.isPopulated() ) {
-            return;
-        }
-        Level auditLevel = auditLevel();
-        if (event.getLevel().isGreaterOrEqual(auditLevel)) {
-            AuditItem item = createItem ( event );
-            if ( item != null ) {
-                AuditorSingleton.getInstance().audit(item);
+        if ( AuditorSingleton.isPopulated() && Tracking.isBound() ) {
+            Level auditLevel = auditLevel();
+            if (event.getLevel().isGreaterOrEqual(auditLevel)) {
+                AuditItem item = createItem(event);
+                if (item != null) {
+                    AuditorSingleton.getInstance().audit(item);
+                }
             }
         }
     }
 
     private AuditItem createItem(ILoggingEvent event) {
-
-        return AuditItem.exception(
-                event.getLevel().levelStr,
-                event.getLoggerName(),
-                event.getFormattedMessage(),
-                stacktrace(event)
-        );
-
+        if ( event.getThrowableProxy() == null ) {
+            return AuditItem.log(
+                    event.getLevel().levelStr,
+                    event.getLoggerName(),
+                    event.getFormattedMessage()
+            );
+        }
+        else {
+            return AuditItem.exception(
+                    event.getLevel().levelStr,
+                    event.getLoggerName(),
+                    event.getFormattedMessage(),
+                    stacktrace(event)
+            );
+        }
     }
 
     private String stacktrace(ILoggingEvent event) {

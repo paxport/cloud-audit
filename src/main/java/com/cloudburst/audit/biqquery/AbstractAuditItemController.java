@@ -1,6 +1,8 @@
 package com.cloudburst.audit.biqquery;
 
 import com.cloudburst.audit.model.AuditItem;
+import com.cloudburst.audit.model.AuditItemType;
+import com.cloudburst.audit.servlet.DefaultAuditFilter;
 import com.cloudburst.bigquery.BigQueryFactory;
 import com.cloudburst.bigquery.TableIdentifier;
 import com.cloudburst.bigquery.query.BigQueryJobFactory;
@@ -19,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,7 +50,13 @@ public abstract class AbstractAuditItemController {
      *
      * @return set of column names tracking.<foo> that we are allowed to query on
      */
-    protected abstract Set<String> queryableTrackingColumns();
+    protected Set<String> queryableTrackingColumns(){
+        Set<String> result = new HashSet<>();
+        result.add(DefaultAuditFilter.TRACING_ID);
+        result.add(DefaultAuditFilter.LOGICAL_SESSION_ID);
+        result.add(DefaultAuditFilter.REQUEST_ID);
+        return result;
+    }
 
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<AuditItem> findItemsByTrackingProps(@RequestParam Map<String,String> queryParams) {
@@ -80,7 +89,39 @@ public abstract class AbstractAuditItemController {
         List<AuditItem> items = this.findItemsByTrackingProps(queryParams);
         Map<String,Object> model = new HashMap<>();
         model.put("items", items);
+        model.put("overview",generateOverview(items,queryParams));
         return new ModelAndView("auditoverview", model);
+    }
+
+    /**
+     * Generate Overview
+     * @param items
+     * @return
+     */
+    protected Map<String,Object> generateOverview(List<AuditItem> items,Map<String, String> queryParams) {
+        Map<String,Object> overview = new HashMap<>();
+        overview.putAll(queryParams);
+        if ( items.size() > 1 ) {
+            AuditItem first = items.get(0);
+            AuditItem last = items.stream()
+                    .filter(i -> i.getType() == AuditItemType.RESPONSE)
+                    .reduce((f, s) -> s).get();
+
+            long envelopeMillis = last.getTimestamp() - first.getTimestamp();
+            overview.put("envelopeMillis",envelopeMillis);
+
+            long responseCount = items.stream()
+                    .filter(i -> i.getType() == AuditItemType.RESPONSE).count();
+            overview.put("responseCount",responseCount);
+
+            long totalTimeRecorded = items.stream()
+                    .filter(i -> i.getType() == AuditItemType.RESPONSE)
+                    .mapToLong( i -> i.getMillisTaken() ).sum();
+
+            long contentMillis = totalTimeRecorded - last.getMillisTaken();
+            overview.put("contentMillis", contentMillis);
+        }
+        return overview;
     }
 
     @RequestMapping("details.html")
