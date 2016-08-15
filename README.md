@@ -106,6 +106,26 @@ Then you will get a basic web gui so you can retrieve a trace by visiting:
 
 __/v1/audit/items/overview.html?internal_tracing_id=foo__
 
+## JCenter Dependency
+
+Add JCenter to your repositories if not already:
+
+    <repositories>
+        <repository>
+            <id>jcenter-snapshots</id>
+            <name>jcenter</name>
+            <url>https://jcenter.bintray.com/</url>
+        </repository>
+    </repositories>
+    
+Add cloud audit dependency:
+
+    <dependency>
+        <groupId>com.cloudburst</groupId>
+        <artifactId>cloud-audit</artifactId>
+        <version>1.0.3</version>
+    </dependency>
+
 
 ## To Release new version to Bintray
 
