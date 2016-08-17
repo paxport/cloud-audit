@@ -85,6 +85,25 @@ This means that you can potentially add request headers in order to elevate the 
 
 Add new AuditSOAPHandler() to your SOAP handler chain in order to audit the SOAP requests and responses.
 
+### Profiling
+
+Add an aspect to you spring config like below to add timing info to the audit trace
+
+    @Aspect
+    @Configuration
+    @Profile("profiling") // turn on and off with spring profiles
+    @NoProfiling
+    public class Profiler extends MethodTimingProfiler {
+    
+        @Pointcut("within(com.mystuff..*)")
+        protected void myPackage() {}
+    
+        @Pointcut("myPackage() && profilingIsOkay()")
+        @Override
+        protected void myPointcut() {}
+    }
+
+
 ### Basic Web Gui
 
 If you subclass AbstractAuditItemController with something like:

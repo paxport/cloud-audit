@@ -15,10 +15,12 @@ import org.springframework.util.StopWatch;
 /**
  * Subclass this as an @Aspect and add a point cut like
  *
- * @Around("anyPublicMethod()")
+ * @Around("anyPublicMethod() && profilingIsOkay()")
  * public Object profile(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
  *   return super.profile(proceedingJoinPoint);
  * }
+ *
+ * Add @NoProfiling annotation to any class that you have problems with
  *
  */
 public abstract class MethodTimingProfiler {
