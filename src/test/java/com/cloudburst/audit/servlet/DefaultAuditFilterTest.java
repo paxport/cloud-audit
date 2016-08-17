@@ -1,6 +1,6 @@
 package com.cloudburst.audit.servlet;
 
-import com.cloudburst.audit.Auditor;
+import com.cloudburst.audit.BackgroundAuditor;
 import com.cloudburst.audit.model.AuditItem;
 import com.cloudburst.audit.model.AuditItemType;
 
@@ -216,7 +216,7 @@ public class DefaultAuditFilterTest {
         }
     }
 
-    private static class MockAuditor implements Auditor<AuditItem> {
+    private static class MockAuditor extends BackgroundAuditor<AuditItem> {
 
         private List<AuditItem> items = new ArrayList<>();
 

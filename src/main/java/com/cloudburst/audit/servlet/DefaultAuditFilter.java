@@ -2,8 +2,8 @@ package com.cloudburst.audit.servlet;
 
 import com.google.api.client.json.jackson2.JacksonFactory;
 
-import com.cloudburst.audit.Auditor;
 import com.cloudburst.audit.AuditorSingleton;
+import com.cloudburst.audit.BackgroundAuditor;
 import com.cloudburst.audit.model.AuditItem;
 import com.cloudburst.audit.model.Tracking;
 import com.cloudburst.audit.servlet.wrappers.AuditHttpServletRequestWrapper;
@@ -11,6 +11,8 @@ import com.cloudburst.audit.servlet.wrappers.AuditHttpServletResponseWrapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -30,23 +32,21 @@ import java.util.stream.Collectors;
  * into the trackingMap along with a generated request_id.
  *
  */
-public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> {
+public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> implements InitializingBean {
 
     private final static Logger logger = LoggerFactory.getLogger(DefaultAuditFilter.class);
     public static final String TRACING_ID = "tracing_id";
     public static final String LOGICAL_SESSION_ID = "logical_session_id";
     public static final String REQUEST_ID = "request_id";
 
-    private Auditor<AuditItem> auditor;
+    @Autowired
+    private BackgroundAuditor<AuditItem> auditor;
 
-    /**
-     * Prefer background auditor to avoid adding latency to req/res
-     * @param auditor
-     */
-    public DefaultAuditFilter(Auditor<AuditItem> auditor) {
-        this.auditor = auditor;
-        // set Logback Appender Auditor in case it is in use
-        AuditorSingleton.setInstance(auditor);
+    public DefaultAuditFilter() {
+    }
+
+    public DefaultAuditFilter(BackgroundAuditor<AuditItem> backgroundAuditor) {
+        this.auditor = backgroundAuditor;
     }
 
     private Set<String> trackingHeaderNames = trackingHeaderNames();
@@ -158,4 +158,8 @@ public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> {
         }
     }
 
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        AuditorSingleton.setInstance(auditor);
+    }
 }

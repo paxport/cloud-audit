@@ -32,12 +32,9 @@ public class BackgroundAuditor<E> implements Auditor<E>, InitializingBean, Dispo
     private int maxQueueSize = 256;
 
     private ExecutorService executor;
-    private Auditor<E> delegate;
 
     @Autowired
-    public BackgroundAuditor(Auditor<E> delegate){
-        this.delegate = delegate;
-    }
+    private Auditor<E> delegate;
 
     protected ExecutorService createExecutor() {
         return new ThreadPoolExecutor(coreThreads,maxThreads,keepAliveSecs, TimeUnit.SECONDS,
