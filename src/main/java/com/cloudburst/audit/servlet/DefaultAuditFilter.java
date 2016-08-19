@@ -109,14 +109,29 @@ public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> implement
     }
 
     protected AuditItem createAuditItemForRequest(AuditHttpServletRequestWrapper requestWrapper) {
+
+        String module = requestWrapper.getRequestURI();
         return AuditItem.request(
-                requestWrapper.getRequestURL().toString(),
-                this.getClass().getSimpleName(),
+                url(requestWrapper),
+                module(requestWrapper),
                 requestWrapper.getMethod(),
                 headers(requestWrapper.getHeaders()),
                 requestWrapper.getContent(),
                 requestWrapper.getContentType()
                 );
+    }
+
+    protected String url(AuditHttpServletRequestWrapper requestWrapper) {
+        String url = requestWrapper.getRequestURL().toString();
+        String queryString = requestWrapper.getQueryString();
+        if ( queryString != null ) {
+            url += "?" + queryString;
+        }
+        return url;
+    }
+
+    protected String module(AuditHttpServletRequestWrapper requestWrapper) {
+        return requestWrapper.getRequestURI();
     }
 
     /**
@@ -137,8 +152,8 @@ public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> implement
     protected AuditItem createAuditItemForResponse(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper, AuditItem requestItem) {
         return AuditItem.response(
                 requestItem,
-                requestWrapper.getRequestURL().toString(),
-                this.getClass().getSimpleName(),
+                url(requestWrapper),
+                module(requestWrapper),
                 requestWrapper.getMethod(),
                 null,
                 responseWrapper.getContent(),
