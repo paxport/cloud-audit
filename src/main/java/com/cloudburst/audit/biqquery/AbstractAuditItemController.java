@@ -9,6 +9,8 @@ import com.cloudburst.bigquery.query.BigQueryJobFactory;
 import com.cloudburst.bigquery.query.Query;
 import com.cloudburst.bigquery.query.QueryJob;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +34,8 @@ import javax.servlet.http.HttpServletResponse;
 //@RestController
 //@RequestMapping("/v1/audit/items")
 public abstract class AbstractAuditItemController {
+
+    private final static Logger logger = LoggerFactory.getLogger(AbstractAuditItemController.class);
 
     @Autowired
     protected BigQueryFactory factory;
@@ -121,6 +125,7 @@ public abstract class AbstractAuditItemController {
             long contentMillis = totalTimeRecorded - last.getMillisTaken();
             overview.put("contentMillis", contentMillis);
         }
+        logger.info("Overview --> " + overview);
         return overview;
     }
 

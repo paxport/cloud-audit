@@ -1,13 +1,13 @@
 package com.cloudburst.audit.servlet.wrappers;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -37,7 +37,7 @@ public class AuditHttpServletResponseWrapper extends HttpServletResponseWrapper 
             String responseEncoding = delegate.getCharacterEncoding();
             return auditServletOutpuStream.baos.toString(responseEncoding != null ? responseEncoding : UTF_8.name());
         } catch (UnsupportedEncodingException e) {
-            return "[UNSUPPORTED ENCODING]";
+            throw new RuntimeException("failed to get content from response wrapper",e);
         }
     }
 

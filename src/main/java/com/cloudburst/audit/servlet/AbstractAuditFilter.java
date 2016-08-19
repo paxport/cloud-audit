@@ -71,6 +71,7 @@ public abstract class AbstractAuditFilter<E> implements Filter {
             httpResponse.getOutputStream().write(responseWrapper.getContentAsBytes());
         }
         catch (IllegalStateException e) {
+            logger.info("having to use writer due to --> " + e.getMessage() );
             httpResponse.getWriter().write(responseWrapper.getContent());
         }
     }
