@@ -70,18 +70,25 @@ public class AuditItemTable extends ReflectionBigQueryTable<AuditItem> implement
     }
 
     @Override
-    protected Object valueForProperty(PropertyDescriptor descriptor, AuditItem item) {
-        switch ( descriptor.getName() ) {
-            case "tracking" :
-                return trackingMap ( item );
+    protected Object valueForProperty(PropertyDescriptor descriptor, Object obj ) {
+        if ( obj instanceof AuditItem ) {
+            AuditItem item = (AuditItem) obj;
 
-            case "timestamp" :
-                ZonedDateTime zdt = ZonedDateTime.ofInstant(Instant.ofEpochMilli(item.getTimestamp())
-                        , ZoneId.systemDefault());
-                return zdt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+            switch (descriptor.getName()) {
+                case "tracking":
+                    return trackingMap(item);
 
-            default :
-                return super.valueForProperty(descriptor, item);
+                case "timestamp":
+                    ZonedDateTime zdt = ZonedDateTime.ofInstant(Instant.ofEpochMilli(item.getTimestamp())
+                            , ZoneId.systemDefault());
+                    return zdt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+
+                default:
+                    return super.valueForProperty(descriptor, item);
+            }
+        }
+        else {
+            return null;
         }
     }
 

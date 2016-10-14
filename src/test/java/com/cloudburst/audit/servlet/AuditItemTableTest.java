@@ -16,7 +16,7 @@ import java.io.IOException;
 /**
  * Created by ajchesney on 03/08/2016.
  */
-@Ignore
+//@Ignore
 public class AuditItemTableTest {
 
     private static BigQueryFactory factory = new BigQueryFactory();

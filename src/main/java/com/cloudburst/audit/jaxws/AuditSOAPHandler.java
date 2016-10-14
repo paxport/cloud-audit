@@ -8,7 +8,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
+import java.util.Vector;
+import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPException;
@@ -28,6 +31,24 @@ public class AuditSOAPHandler implements SOAPHandler<SOAPMessageContext> {
     private final static Logger logger = LoggerFactory.getLogger(AuditSOAPHandler.class);
 
     private final ThreadLocal<AuditItem> REQUEST_ITEMS = new ThreadLocal<>();
+
+    private List<String> sensitiveTexts = new Vector<>();
+
+    private List<String> sensitiveElements = new Vector<>();
+
+    public AuditSOAPHandler withTextObscured(String... obscure) {
+        for (String text : obscure) {
+            sensitiveTexts.add(text);
+        }
+        return this;
+    }
+
+    public AuditSOAPHandler withElementsObscured(String... elementNames) {
+        for (String text : elementNames) {
+            sensitiveElements.add(text);
+        }
+        return this;
+    }
 
     @Override
     public boolean handleMessage(SOAPMessageContext ctx) {
@@ -134,12 +155,51 @@ public class AuditSOAPHandler implements SOAPHandler<SOAPMessageContext> {
         try {
             message.writeTo(baos);
             baos.close();
-            return new String(baos.toByteArray(),"UTF-8");
+            return obscure(new String(baos.toByteArray(),"UTF-8"));
         } catch (SOAPException e) {
             logger.warn("messageToString",e);
         } catch (IOException e) {
             logger.warn("messageToString",e);
         }
         return "exception in messageToString";
+    }
+
+    /**
+     * Replace and sensitive texts like passwords with ** obscured **
+     * @param string
+     * @return
+     */
+    protected String obscure(String string) {
+        if ( !sensitiveTexts.isEmpty() ) {
+            string = sensitiveTexts.stream()
+                    .map(toRem-> (Function<String,String>) s->s.replaceAll(toRem, "** obscured **"))
+                    .reduce(Function.identity(), Function::andThen)
+                    .apply(string);
+        }
+        if (!sensitiveElements.isEmpty()) {
+            for (String elementName : sensitiveElements) {
+                string = obscureElement(elementName,string);
+            }
+        }
+        return string;
+    }
+
+    private String obscureElement(String elementName, String xml) {
+        int start = 0;
+        while ( (start = xml.indexOf(elementName + ">",start)) > -1){
+            start += elementName.length()+1;
+            int end = xml.indexOf("</",start);
+            if ( end > -1 ){
+                xml = xml.substring(0,start) + "** obscured **" + xml.substring(end);
+                start = xml.indexOf(elementName + ">",start);
+                if ( start < 0 ) {
+                    return xml;
+                }
+                else {
+                    start += elementName.length()+1;
+                }
+            }
+        }
+        return xml;
     }
 }
