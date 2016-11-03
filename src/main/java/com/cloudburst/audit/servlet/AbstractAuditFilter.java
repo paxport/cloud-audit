@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,11 +30,18 @@ public abstract class AbstractAuditFilter<E> implements Filter {
 
     private final static Logger logger = LoggerFactory.getLogger(AbstractAuditFilter.class);
 
-    private Set<String> excludedPaths = excludedPaths();
+    private Set<String> includedPaths = null;
 
-    protected Set<String> excludedPaths(){
+    protected Set<String> includedPaths(){
         Set<String> paths = new HashSet<>();
         return paths;
+    }
+
+    private Set<String> ensureIncludedPaths() {
+        if ( includedPaths == null ) {
+            includedPaths = includedPaths();
+        }
+        return includedPaths==null?Collections.emptySet():includedPaths;
     }
 
     @Override
@@ -50,7 +58,7 @@ public abstract class AbstractAuditFilter<E> implements Filter {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
         // ignore requests for excluded paths
-        for (String excludedPath : excludedPaths) {
+        for (String excludedPath : ensureIncludedPaths()) {
             String requestURI = httpRequest.getRequestURI();
             if (requestURI.startsWith(excludedPath)) {
                 filterChain.doFilter(httpRequest, httpResponse);

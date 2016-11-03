@@ -51,7 +51,7 @@ public class DefaultAuditFilterTest {
         MockitoAnnotations.initMocks(this);
         filter = new DefaultAuditFilter(mockAuditor){
             @Override
-            protected Set<String> excludedPaths() {
+            protected Set<String> includedPaths() {
                 return Collections.singleton("/_ah");
             }
         };
