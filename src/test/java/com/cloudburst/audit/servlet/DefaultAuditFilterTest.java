@@ -52,7 +52,7 @@ public class DefaultAuditFilterTest {
         filter = new DefaultAuditFilter(mockAuditor){
             @Override
             protected Set<String> includedPaths() {
-                return Collections.singleton("/_ah");
+                return Collections.singleton("/foo");
             }
         };
     }

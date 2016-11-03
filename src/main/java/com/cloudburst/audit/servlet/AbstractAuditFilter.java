@@ -58,9 +58,9 @@ public abstract class AbstractAuditFilter<E> implements Filter {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
         // ignore requests for excluded paths
-        for (String excludedPath : ensureIncludedPaths()) {
-            String requestURI = httpRequest.getRequestURI();
-            if (requestURI.startsWith(excludedPath)) {
+        String requestURI = httpRequest.getRequestURI();
+        for (String includedPath : ensureIncludedPaths()) {
+            if (!requestURI.startsWith(includedPath)) {
                 filterChain.doFilter(httpRequest, httpResponse);
                 return;
             }
