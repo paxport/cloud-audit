@@ -3,23 +3,16 @@ package com.cloudburst.audit.servlet;
 import com.cloudburst.audit.model.AuditItem;
 import com.cloudburst.audit.servlet.wrappers.AuditHttpServletRequestWrapper;
 import com.cloudburst.audit.servlet.wrappers.AuditHttpServletResponseWrapper;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * Servlet Filter that wraps the http request and response and gives an opportunity to
@@ -44,6 +37,15 @@ public abstract class AbstractAuditFilter<E> implements Filter {
         return includedPaths==null?Collections.emptySet():includedPaths;
     }
 
+    private boolean isIncluded(String requestURI) {
+        for (String includedPath : ensureIncludedPaths()) {
+            if (requestURI.startsWith(includedPath)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
 
@@ -59,11 +61,9 @@ public abstract class AbstractAuditFilter<E> implements Filter {
 
         // ignore requests for excluded paths
         String requestURI = httpRequest.getRequestURI();
-        for (String includedPath : ensureIncludedPaths()) {
-            if (!requestURI.startsWith(includedPath)) {
-                filterChain.doFilter(httpRequest, httpResponse);
-                return;
-            }
+        if (!isIncluded(requestURI)) {
+            filterChain.doFilter(httpRequest, httpResponse);
+            return;
         }
 
         AuditHttpServletRequestWrapper requestWrapper = new AuditHttpServletRequestWrapper(httpRequest);
@@ -83,6 +83,8 @@ public abstract class AbstractAuditFilter<E> implements Filter {
             httpResponse.getWriter().write(responseWrapper.getContent());
         }
     }
+
+
 
     /**
      * Do stuff before the servlet chain executes like binding tracking info

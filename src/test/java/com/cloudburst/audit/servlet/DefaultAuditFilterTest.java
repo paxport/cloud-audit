@@ -3,25 +3,12 @@ package com.cloudburst.audit.servlet;
 import com.cloudburst.audit.BackgroundAuditor;
 import com.cloudburst.audit.model.AuditItem;
 import com.cloudburst.audit.model.AuditItemType;
-
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.collections4.IteratorUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -29,6 +16,11 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -52,7 +44,7 @@ public class DefaultAuditFilterTest {
         filter = new DefaultAuditFilter(mockAuditor){
             @Override
             protected Set<String> includedPaths() {
-                return Collections.singleton("/foo");
+                return ImmutableSet.of("/foo", "/bar");
             }
         };
     }
