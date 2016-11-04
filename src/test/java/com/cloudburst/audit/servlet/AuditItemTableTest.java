@@ -1,14 +1,11 @@
 package com.cloudburst.audit.servlet;
 
-import com.google.api.services.bigquery.model.TableDataInsertAllResponse;
-
 import com.cloudburst.audit.biqquery.AuditItemTable;
 import com.cloudburst.audit.biqquery.AuditTableIdentifier;
 import com.cloudburst.audit.model.AuditItem;
 import com.cloudburst.bigquery.BigQueryFactory;
-
+import com.google.api.services.bigquery.model.TableDataInsertAllResponse;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -36,9 +33,6 @@ public class AuditItemTableTest {
         AuditItem item = AuditItem.request("URL","module","label","headers","body", "contentType");
 
         TableDataInsertAllResponse res = exampleTable.insertItem(item);
-
-
-
     }
 
 
