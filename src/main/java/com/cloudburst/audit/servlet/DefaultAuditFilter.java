@@ -5,6 +5,7 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.cloudburst.audit.AuditorSingleton;
 import com.cloudburst.audit.BackgroundAuditor;
 import com.cloudburst.audit.model.AuditItem;
+import com.cloudburst.audit.model.ImmutableAuditItem;
 import com.cloudburst.audit.model.Tracking;
 import com.cloudburst.audit.servlet.wrappers.AuditHttpServletRequestWrapper;
 import com.cloudburst.audit.servlet.wrappers.AuditHttpServletResponseWrapper;
@@ -101,16 +102,12 @@ public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> implement
         // return tracking details in response
         trackingMap.entrySet().forEach(e -> responseWrapper.addHeader(e.getKey(),e.getValue()));
 
+        // create request item but don't audit yet in case tracking info is missing
         AuditItem requestItem = createAuditItemForRequest(requestWrapper);
-        if ( requestItem != null ) {
-            auditor.audit(requestItem);
-        }
         return requestItem;
     }
 
     protected AuditItem createAuditItemForRequest(AuditHttpServletRequestWrapper requestWrapper) {
-
-        String module = requestWrapper.getRequestURI();
         return AuditItem.request(
                 url(requestWrapper),
                 module(requestWrapper),
@@ -142,6 +139,20 @@ public class DefaultAuditFilter extends AbstractAuditFilter<AuditItem> implement
      */
     @Override
     protected void afterFilterChain(AuditHttpServletRequestWrapper requestWrapper, AuditHttpServletResponseWrapper responseWrapper, AuditItem requestItem) {
+        if ( requestItem != null ) {
+            if (requestItem.getTracking().isEmpty() ){
+                // this means that the servlet in play could bind extra tracking info
+                // and we will pick it up before auditing the request and response
+                Map<String,String> updatedTrackingMap = Tracking.getTrackingMap();
+                if ( !updatedTrackingMap.isEmpty() ){
+                    requestItem = ImmutableAuditItem.builder()
+                            .from(requestItem)
+                            .tracking(updatedTrackingMap)
+                            .build();
+                }
+            }
+            auditor.audit(requestItem);
+        }
         AuditItem responseItem = createAuditItemForResponse(requestWrapper,responseWrapper,requestItem);
         if ( responseItem != null ) {
             auditor.audit(responseItem);
