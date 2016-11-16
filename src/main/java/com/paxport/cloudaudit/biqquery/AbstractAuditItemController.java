@@ -31,8 +31,6 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
-//@RestController
-//@RequestMapping("/v1/audit/items")
 public abstract class AbstractAuditItemController {
 
     private final static Logger logger = LoggerFactory.getLogger(AbstractAuditItemController.class);

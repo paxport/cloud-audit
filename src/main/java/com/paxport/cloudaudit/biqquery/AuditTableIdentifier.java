@@ -1,11 +1,12 @@
 package com.paxport.cloudaudit.biqquery;
 
 import com.paxport.bigquery.TableIdentifier;
-
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile("audit")
 public class AuditTableIdentifier implements TableIdentifier {
 
     @Value("${audit.bigquery.projectId}")
