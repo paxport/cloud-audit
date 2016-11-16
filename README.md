@@ -58,7 +58,7 @@ You will need to subclass DefaultAuditFilter like:
 And then configure with something like:
 
     @Configuration
-    @ComponentScan(basePackages = {"com.cloudburst"})
+    @ComponentScan(basePackages = {"com.paxport"})
     public class MyAuditFilterConfiguration {
     
         @Bean
@@ -76,7 +76,7 @@ And then configure with something like:
 
 Add this to your logback.xml to log WARN and ERROR messages to audit DB:
 
-    <appender name="AUDIT" class="com.cloudburst.audit.logback.AuditAppender"/>
+    <appender name="AUDIT" class="com.paxport.cloudaudit.logback.AuditAppender"/>
     
 If your TrackingMap contains something like audit-level=DEBUG then you will get DEBUG and INFO as well. 
 This means that you can potentially add request headers in order to elevate the audit level for that request.
@@ -140,9 +140,9 @@ Add JCenter to your repositories if not already:
 Add cloud audit dependency:
 
     <dependency>
-        <groupId>com.cloudburst</groupId>
+        <groupId>com.paxport</groupId>
         <artifactId>cloud-audit</artifactId>
-        <version>1.0.3</version>
+        <version>1.1.0</version>
     </dependency>
 
 
