@@ -1,6 +1,8 @@
 Cloud Audit
 ===================
 
+[![Build Status](https://travis-ci.org/paxport/cloud-audit.svg?branch=master)](https://travis-ci.org/paxport/cloud-audit)
+
 Infrastructure for logging request/response pairs and other debugging/auditing info.
 
 First off logging into Google BigQuery.
